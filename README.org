@@ -1,0 +1,31 @@
+* CSV Reconcile
+  Create [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file after [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is written in Python and has some more configurability.
+
+** Quick start
+   - Clone this repository.
+   - Create a virtualenv
+     #+begin_src sh
+     $ python -m venv venv
+     #+end_src
+   - Install the wheel from the dist folder
+     #+begin_src sh
+     $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl
+     #+end_src
+   - Point to the config and flask app in the environment
+     #+begin_src sh
+     $ export CSVRECON_CONFIG="sample/sample.cfg"
+     $ export FLASK_APP="csv_reconcile"  
+     #+end_src
+   - Initialize the database
+     #+begin_src sh
+     $ venv/bin/python -m flask init-db
+     #+end_src
+   - Start the service
+     #+begin_src sh
+     $ venv/bin/python -m flask run
+     #+end_src
+
+   The service is run on `http://127.0.0.1:5000/reconcile`.  You can point at a different host:port by adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.
+
+** Poetry
+   This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
