@@ -24,6 +24,7 @@
      #+begin_src sh
      $ venv/bin/python -m flask run
      #+end_src
+   - Since this is running from a virtualenv, you can simply delete the whole lot to clean up.
 
    The service is run on `http://127.0.0.1:5000/reconcile`.  You can point at a different host:port by adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.
 
