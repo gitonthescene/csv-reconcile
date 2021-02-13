@@ -2,7 +2,7 @@
   Create [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file after [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is written in Python and has some more configurability.
 
 ** Quick start
-   - Clone this repository.
+   - Clone this repository
    - Create a virtualenv
      #+begin_src sh
      $ python -m venv venv
@@ -26,7 +26,7 @@
      #+end_src
    - Since this is running from a virtualenv, you can simply delete the whole lot to clean up.
 
-   The service is run on `http://127.0.0.1:5000/reconcile`.  You can point at a different host:port by adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.
+   The service is run at http://127.0.0.1:5000/reconcile.  You can point at a different host:port by adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.
 
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
