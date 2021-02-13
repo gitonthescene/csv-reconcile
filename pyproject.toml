@@ -12,6 +12,9 @@ flask = "^1.1.2"
 pytest = "^5.2"
 nose = "^1.3.7"
 
+[tool.poetry.scripts]
+csv-reconcile = "csv_reconcile:main"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

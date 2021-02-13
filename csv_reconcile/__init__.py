@@ -6,8 +6,8 @@ from . import default_settings
 import json
 import os.path
 from contextlib import contextmanager
-from pprint import pprint as pp
 import time
+import click
 
 #------------------------------------------------------------------
 # Implement reconciliation API
@@ -45,12 +45,16 @@ MANIFEST = {
 }
 
 
-def create_app():
+def create_app(setup=None, config=None):
     app = Flask("csv-reconcile")
     # Could make dbname configurable
     # possibly better to roll THRESHOLD and LIMIT into one config called LIMITS
     app.config.from_object(default_settings)
-    app.config.from_envvar('CSVRECON_CONFIG')
+    if config:
+        app.config.from_pyfile(config)
+
+    app.config.from_mapping(**setup)
+
     app.logger.setLevel(logging.INFO)
     try:
         os.makedirs(app.instance_path)
@@ -75,5 +79,20 @@ def create_app():
         else:
             return MANIFEST
 
-    initdb.init_app(app)
     return app
+
+
+@click.command()
+@click.option('--config', help='config file')
+@click.option('--init-db', is_flag=True, help='initialize the db')
+@click.argument('csvfile')
+@click.argument('idcol')
+@click.argument('namecol')
+def main(config, init_db, csvfile, idcol, namecol):
+    app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
+    if init_db:
+        with app.app_context():
+            initdb.init_db()
+            click.echo('Initialized the database.')
+
+    app.run()

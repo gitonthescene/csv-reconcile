@@ -1,9 +1,9 @@
-import click
 from flask import current_app
-from flask.cli import with_appcontext
 import csv
 from .score import makeBigrams
-from .db import get_db, close_db
+from .db import get_db
+from importlib.resources import read_text
+import csv_reconcile
 
 
 def init_db():
@@ -16,8 +16,8 @@ def init_db():
     if csvencoding:
         enckwarg['encoding'] = csvencoding
 
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+    schema = read_text(csv_reconcile, 'schema.sql')
+    db.executescript(schema)
 
     with db:
         # Create a table with ids (as PRIMARY ID), words and bigrams
@@ -35,16 +35,3 @@ def init_db():
                 bigrams = makeBigrams(word)
                 db.execute("INSERT INTO reconcile VALUES (?,?,?)",
                            (mid, word, bigrams))
-
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
-
-
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    init_db()
-    click.echo('Initialized the database.')
