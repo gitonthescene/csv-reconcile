@@ -8,7 +8,7 @@
      #+begin_src sh
      $ python -m venv venv                                             # create virtualenv
      $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl  # install package
-     $ venv/bin/activate                                               # activate virtual environment
+     $ source venv/bin/activate                                               # activate virtual environment
      (venv) $ csv-reconcile --init-db sample/reps.tsv item itemLabel   # start the service
      (venv) $ deactivate                                               # remove virtual environment
      #+end_src
