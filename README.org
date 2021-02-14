@@ -1,23 +1,20 @@
 * CSV Reconcile
-  Create [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file after [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is written in Python and has some more configurability.
+  Create [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file after [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is
+  written in Python and has some more configurability.
 
 ** Quick start
    - Clone this repository
-   - Create a virtualenv
+   - Run the service
      #+begin_src sh
-     $ python -m venv venv
+     $ python -m venv venv                                             # create virtualenv
+     $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl  # install package
+     $ venv/bin/python -m csv_reconcile --init-db sample/reps.tsv item itemLabel  # start the service
      #+end_src
-   - Install the wheel from the dist folder
-     #+begin_src sh
-     $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl
-     #+end_src
-   - Start the service
-     #+begin_src sh
-     $ venv/bin/python -m csv_reconcile --init-db sample/reps.tsv item itemLabel
-     #+end_src
-   - Since this is running from a virtualenv, you can simply delete the whole lot to clean up.
 
-   The service is run at http://127.0.0.1:5000/reconcile.  You can point at a different host:port by adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.
+   The service is run at http://127.0.0.1:5000/reconcile.  You can point at a different host:port by
+   adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.  Since this is running from a virtualenv, you can simply
+   delete the whole lot to clean up.
+
 
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
