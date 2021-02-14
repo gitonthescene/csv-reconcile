@@ -3,6 +3,7 @@ name = "csv-reconcile"
 version = "0.1.0"
 description = "OpenRefine reconciliation service backed by csv resource"
 authors = ["Douglas Mennella <douglas.mennella@gmail.com>"]
+include = ["csv_reconcile/bin/*"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
