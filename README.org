@@ -18,3 +18,7 @@
 
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
+   #+begin_src sh
+   $ poetry install
+   $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
+   #+end_src
