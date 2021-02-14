@@ -11,18 +11,9 @@
      #+begin_src sh
      $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl
      #+end_src
-   - Point to the config and flask app in the environment
-     #+begin_src sh
-     $ export CSVRECON_CONFIG="sample/sample.cfg"
-     $ export FLASK_APP="csv_reconcile"  
-     #+end_src
-   - Initialize the database
-     #+begin_src sh
-     $ venv/bin/python -m flask init-db
-     #+end_src
    - Start the service
      #+begin_src sh
-     $ venv/bin/python -m flask run
+     $ venv/bin/python -m csv_reconcile --init-db sample/reps.tsv item itemLabel
      #+end_src
    - Since this is running from a virtualenv, you can simply delete the whole lot to clean up.
 
