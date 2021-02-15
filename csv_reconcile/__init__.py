@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import cross_origin
 import logging
 from .score import searchFor
 from . import initdb
@@ -35,7 +36,12 @@ def processQueryBatch(queryBatch, threshold=0.0, limit=None):
     return res
 
 
-MANIFEST = {}
+MANIFEST = {
+    "versions": ["0.1"],
+    "name": "CSV Reconcile",
+    "identifierSpace": "http://localhost/csv_reconcile/ids",
+    "schemaSpace": "http://localhost/csv_reconcile/schema"
+}
 
 
 def create_app(setup=None, config=None):
@@ -47,14 +53,8 @@ def create_app(setup=None, config=None):
         app.config.from_pyfile(config)
 
     app.config.from_mapping(**setup)
-    MANIFEST.update((
-        ("name", app.config['SERVICENAME']),
-        ("versions", app.config['VERSIONS']),
-        ("identifierSpace", app.config['IDSPACE']),
-        ("schemaSpace", app.config['SCHEMASPACE']),
-    ))
-    if 'VIEW' in app.config:
-        MANIFEST['view'] = app.config['VIEW']
+    if 'MANIFEST' in app.config:
+        MANIFEST.update(app.config['MANIFEST'])
 
     app.logger.setLevel(logging.INFO)
     try:
@@ -62,20 +62,8 @@ def create_app(setup=None, config=None):
     except OSError:
         pass
 
-    def jsonpify(obj):
-        """
-        Like jsonify but wraps result in a JSONP callback if a 'callback'
-        query param is supplied.
-        """
-        try:
-            callback = request.args['callback']
-            response = app.make_response("%s(%s)" % (callback, json.dumps(obj)))
-            response.mimetype = "text/javascript"
-            return response
-        except KeyError:
-            return jsonify(obj)
-
     @app.route('/reconcile', methods=['POST', 'GET'])
+    @cross_origin()
     def acceptQuery():
         threshold = app.config.get('THRESHOLD', None)
         limit = app.config.get('LIMIT', None)
@@ -89,9 +77,9 @@ def create_app(setup=None, config=None):
                                         threshold=threshold,
                                         limit=limit)
             app.logger.info(ret)
-            return jsonpify(ret)
+            return ret
         else:
-            return jsonpify(MANIFEST)
+            return MANIFEST
 
     return app
 
