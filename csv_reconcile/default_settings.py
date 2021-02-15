@@ -1,5 +1,3 @@
-import os
-
 DATABASE = 'csvreconcile.db'
 
 CSVKWARGS = dict(delimiter='\t')
@@ -9,3 +7,9 @@ CSVKWARGS = dict(delimiter='\t')
 LIMIT = 10  # At most 10 matches per query
 
 THRESHOLD = 30.0  # At least a 30% match
+
+# Manifest fields
+VERSIONS = ["0.1"]
+SERVICENAME = "CSV Reconcile"
+IDSPACE = "http://localhost/csv_reconcile/ids"
+SCHEMASPACE = "http://localhost/csv_reconcile/schema"
