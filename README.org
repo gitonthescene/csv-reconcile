@@ -17,6 +17,10 @@
    adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.  Since this is running from a virtualenv, you can simply
    delete the whole lot to clean up.
 
+   If you have a C compiler installed you may prefer to install the sdist
+   ~dist/csv-reconcile-0.1.0.tar.gz~ which will build a [[https://cython.readthedocs.io/en/latest/][Cython]] version of the computationally
+   intensive fuzzy match routine for speed.
+
 
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
