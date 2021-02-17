@@ -1,6 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_cors import cross_origin
-import logging
 from .score import searchFor
 from . import initdb
 from . import default_settings
@@ -36,6 +35,7 @@ def processQueryBatch(queryBatch, threshold=0.0, limit=None):
     return res
 
 
+# Default manifest.  Can be overriden/updated in configuration
 MANIFEST = {
     "versions": ["0.1"],
     "name": "CSV Reconcile",
@@ -56,7 +56,7 @@ def create_app(setup=None, config=None):
     if 'MANIFEST' in app.config:
         MANIFEST.update(app.config['MANIFEST'])
 
-    app.logger.setLevel(logging.INFO)
+    #app.logger.setLevel(logging.INFO)
     try:
         os.makedirs(app.instance_path)
     except OSError:
