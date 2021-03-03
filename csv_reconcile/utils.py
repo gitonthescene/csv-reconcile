@@ -1,5 +1,4 @@
 # [[https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient]]
-# Could speed this up using Cython
 def getDiceCoefficient(bigram1, bigram2):
     '''
     Calculate the Dice coefficient from two normalized sets of bigrams

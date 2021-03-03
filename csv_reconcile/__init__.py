@@ -1,6 +1,7 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import cross_origin
-from .score import searchFor
+from .score import processQueryBatch
+from .extend import getCSVCols, processDataExtensionBatch
 from . import initdb
 from . import default_settings
 import json
@@ -24,23 +25,18 @@ def Timer():
     print("Elapsed: %s" % (elapsed,))
 
 
-def processQueryBatch(queryBatch, threshold=0.0, limit=None):
-    res = dict()
-    for qid, req in queryBatch.items():
-        queryStr = req['query']
-        limit = req.get('limit', limit)
-        res[qid] = dict(
-            result=searchFor(queryStr, limit=limit, threshold=threshold))
-
-    return res
-
-
 # Default manifest.  Can be overriden/updated in configuration
 MANIFEST = {
     "versions": ["0.1"],
     "name": "CSV Reconcile",
     "identifierSpace": "http://localhost/csv_reconcile/ids",
-    "schemaSpace": "http://localhost/csv_reconcile/schema"
+    "schemaSpace": "http://localhost/csv_reconcile/schema",
+    "extend": {
+        "propose_properties": {
+            "service_url": "http://127.0.0.1:5000",
+            "service_path": "/properties"
+        }
+    }
 }
 
 
@@ -56,30 +52,85 @@ def create_app(setup=None, config=None):
     if 'MANIFEST' in app.config:
         MANIFEST.update(app.config['MANIFEST'])
 
-    #app.logger.setLevel(logging.INFO)
+    loglevel = app.config['LOGLEVEL']
+    if loglevel:
+        app.logger.setLevel(loglevel)
+
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
 
+    @app.before_request
+    def before():
+        app.logger.debug(request.method)
+        app.logger.debug(request.headers)
+
+    @app.after_request
+    def after(response):
+        app.logger.debug(response.headers)
+        return response
+
     @app.route('/reconcile', methods=['POST', 'GET'])
     @cross_origin()
     def acceptQuery():
+
         threshold = app.config.get('THRESHOLD', None)
         limit = app.config.get('LIMIT', None)
+        stopwords = app.config.get('STOPWORDS', None)
         queries = request.form.get('queries')
+        extend = request.form.get('extend')
         if queries:
             queryBatch = json.loads(queries)
 
             app.logger.info(queryBatch)
             with Timer():
                 ret = processQueryBatch(queryBatch,
+                                        limit=limit,
                                         threshold=threshold,
-                                        limit=limit)
+                                        stopwords=stopwords)
+            app.logger.info(ret)
+            return ret
+        elif extend:
+            extendBatch = json.loads(extend)
+
+            app.logger.info(extendBatch)
+            with Timer():
+                ret = processDataExtensionBatch(extendBatch)
             app.logger.info(ret)
             return ret
         else:
             return MANIFEST
+
+    def jsonpify(obj):
+        """
+        Like jsonify but wraps result in a JSONP callback if a 'callback'
+        query param is supplied.
+        """
+        try:
+            callback = request.args['callback']
+            response = app.make_response("%s(%s)" % (callback, json.dumps(obj)))
+            response.mimetype = "text/javascript"
+            return response
+        except KeyError:
+            return jsonify(obj)
+
+    @app.route('/properties', methods=['POST', 'GET'])
+    @cross_origin()
+    def acceptPropertyRequest():
+        # query string arg
+        propType = request.args.get('type')
+
+        # Type irrelevant, return all columns
+        if propType != None:
+            cols = getCSVCols()
+            ret = dict(properties=[{
+                'id': colname,
+                'name': name
+            } for name, colname in cols])
+            return jsonpify(ret)
+
+        # unprocessible request
 
     return app
 

@@ -4,6 +4,23 @@ from .score import makeBigrams
 from .db import get_db
 from importlib.resources import read_text
 import csv_reconcile
+from normality import slugify
+
+
+def initDataTable(colnames, idcol):
+    db = get_db()
+    cols = []
+    for col in colnames:
+        slug = slugify(col)
+        if col == idcol:
+            cols.append('%s TEXT PRIMARY KEY' % (slug,))
+        else:
+            cols.append('%s TEXT NOT NULL' % (slug,))
+
+        db.execute('INSERT INTO datacols VALUES (?,?)', (col, slug))
+
+    # create data table with the contents of the csv file
+    db.execute('CREATE TABLE data (\n  %s\n)' % (',\n  '.join(cols),))
 
 
 def init_db():
@@ -11,6 +28,7 @@ def init_db():
     idcol, searchcol = current_app.config['CSVCOLS']
     csvfilenm = current_app.config['CSVFILE']
     kwargs = current_app.config.get('CSVKWARGS', {})
+    stopwords = current_app.config.get('STOPWORDS', None)
     csvencoding = current_app.config.get('CSVENCODING', None)
     enckwarg = dict()
     if csvencoding:
@@ -29,9 +47,14 @@ def init_db():
             searchidx = header.index(searchcol)
             ididx = header.index(idcol)
 
+            initDataTable(header, idcol)
+
+            datavals = ','.join('?' * len(header))
+
             for row in reader:
                 mid = row[ididx]
                 word = row[searchidx]
-                bigrams = makeBigrams(word)
+                bigrams = makeBigrams(word, stopwords=stopwords)
                 db.execute("INSERT INTO reconcile VALUES (?,?,?)",
                            (mid, word, bigrams))
+                db.execute("INSERT INTO data VALUES (%s)" % (datavals), row)

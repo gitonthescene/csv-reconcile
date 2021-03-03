@@ -1,7 +1,14 @@
 DROP TABLE IF EXISTS reconcile;
+DROP TABLE IF EXISTS data;
+DROP TABLE IF EXISTS datacols;
 
 CREATE TABLE reconcile (
   id TEXT PRIMARY KEY,
   word TEXT NOT NULL,
   bigrams TEXT NOT NULL
+);
+
+CREATE TABLE datacols (
+  name TEXT PRIMARY KEY,
+  colname TEXT NOT NULL
 );
