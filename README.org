@@ -1,6 +1,5 @@
 * CSV Reconcile
-  Create [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file after [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is
-  written in Python and has some more configurability.
+  A [[https://github.com/reconciliation-api/specs][reconciliation service]] for [[https://openrefine.org/][OpenRefine]] based on a CSV file similar to [[http://okfnlabs.org/reconcile-csv/][reconcile-csv]].  This one is written in Python and has some more configurability.
 
 ** Quick start
    - Clone this repository
@@ -21,10 +20,83 @@
    ~dist/csv-reconcile-0.1.0.tar.gz~ which will build a [[https://cython.readthedocs.io/en/latest/][Cython]] version of the computationally
    intensive fuzzy match routine for speed.
 
-
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
    #+begin_src sh
    $ poetry install
    $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
    #+end_src
+
+** Description
+
+   This reconciliation service uses [[https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient][Dice coefficient scoring]] to reconcile values against a given column
+   in a [[https://en.wikipedia.org/wiki/Comma-separated_values][CSV]] file.  The CSV file must contain a column containing distinct values to reconcile to.
+   We'll call this the /id column/.  We'll call the column being reconciled against the /name column/.
+
+   For performance reasons, the /name column/ is preprocessed to normalized values which are stored in
+   an [[https://www.sqlite.org/index.html][sqlite]] database.  This database must be initialized at least once by passing the ~--init-db~ on
+   the command line.  Once initialized this option can be removed from subsequent runs.
+
+   Note that the service supplies all its data with a dummy /type/ so there is no reason to reconcile
+   against any particular /type/.
+
+   In addition to reconciling against the /name column/, the service also functions as a [[https://reconciliation-api.github.io/specs/latest/#data-extension-service][data extension
+   service]], which offers any of the other columns of the CSV file.
+
+   Note that Dice coefficient scoring is agnostic to word ordering.
+
+** Usage
+
+   Basic usage requires passing the name of the CSV file, the /id column/ and the /name column/.
+
+   #+begin_src sh
+   $ poetry run csv-reconcile --help
+   Usage: csv-reconcile [OPTIONS] CSVFILE IDCOL NAMECOL
+
+   Options:
+     --config TEXT  config file
+     --init-db      initialize the db
+     --help         Show this message and exit.
+   $
+   #+end_src
+
+   In addition to the ~--init-db~ switch mentioned above you may use the ~--config~ option to point to
+   a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask configuration]] and hence is Python code though most
+   configuration is simply setting variables to constant values.
+
+** Common configuration
+   - ~CSVKWARGS~  - Arguments to pass to [[https://docs.python.org/3/library/csv.html][csv.reader]].
+     e.g. ~CSVKWARGS={'delimiter': ',',  quotechar='"'}~ for comma delimited files using ~"~ as quote character.
+   - ~CSVECODING~ - Encoding of the CSV file.
+     e.g. ~CSVECODING='utf-8-sig'~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
+   - ~STOPWORDS~  - Words removed during normalization and hence not part of the reconciliation calculation.
+     e.g. ~STOPWORDS=['lake','reservoir']~
+     Note that words are normalized to lower case, so case is irrelevant here.
+   - ~LIMIT~      - The maximum number of reonciliation candidates returned per entry.
+     e.g. ~LIMIT=10~
+   - ~THRESHOLD~  - The minimum score for returned reconciliation candidates.
+     e.g. ~THRESHOLD=80.5~
+   - ~DATABASE~   - The name of the generated sqlite database containing pre-processed values.  (Default ~csvreconcile.db~)
+     e.g. ~DATABASE='lakes.db'~  You may want to change the name of the database if you regularly switch between databases being used.
+   - ~MANIFEST~   - Overrides for the service manifest.
+     e.g. ~MANIFEST={"name": "My service"}~ sets the name of the service to "My service".
+
+   This last is most interesting.  If your data is coming from [[https://www.wikidata.org][Wikidata]] and your /id column/
+   contains [[https://www.wikidata.org/wiki/Help:Items][Q values]], then a manifest like the following will allow your links to be clickable inside OpenRefine.
+
+   #+begin_src json
+    MANIFEST = {
+    "identifierSpace": "http://www.wikidata.org/entity/",
+    "schemaSpace": "http://www.wikidata.org/prop/direct/",
+    "view": {"url":"https://www.wikidata.org/wiki/{{id}}"},
+    "name": "My reconciliation service"
+   }
+   #+end_src
+
+   If your CSV is made up of data taken from another [[https://reconciliation-api.github.io/testbench/][reconciliation service]], you may similiarly copy
+   parts of their manifest to make use of their features, such as the [[https://reconciliation-api.github.io/specs/latest/#preview-service][preview service]].  See the
+   reconciliation spec for details.
+
+** Future enhancements
+
+   It would be nice to allow for different scoring methods by use of a [[https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html][Python plugins]].
