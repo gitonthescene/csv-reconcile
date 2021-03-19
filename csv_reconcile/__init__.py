@@ -80,6 +80,8 @@ def create_app(setup=None, config=None):
         stopwords = app.config.get('STOPWORDS', None)
         queries = request.form.get('queries')
         extend = request.form.get('extend')
+        if stopwords:
+            stopwords = [w.lower() for w in stopwords]
         if queries:
             queryBatch = json.loads(queries)
 
@@ -102,6 +104,8 @@ def create_app(setup=None, config=None):
         else:
             return MANIFEST
 
+    # FIX FIX FIX...  Not needed in OpenRefine 3.5
+    # [[https://github.com/OpenRefine/OpenRefine/issues/3672]]
     def jsonpify(obj):
         """
         Like jsonify but wraps result in a JSONP callback if a 'callback'
@@ -148,4 +152,6 @@ def main(config, init_db, csvfile, idcol, namecol):
             initdb.init_db()
             click.echo('Initialized the database.')
 
+    from werkzeug.serving import WSGIRequestHandler
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
     app.run()

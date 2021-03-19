@@ -29,6 +29,8 @@ def init_db():
     csvfilenm = current_app.config['CSVFILE']
     kwargs = current_app.config.get('CSVKWARGS', {})
     stopwords = current_app.config.get('STOPWORDS', None)
+    if stopwords:
+        stopwords = [w.lower() for w in stopwords]
     csvencoding = current_app.config.get('CSVENCODING', None)
     enckwarg = dict()
     if csvencoding:
