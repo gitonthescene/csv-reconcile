@@ -99,4 +99,4 @@
 
 ** Future enhancements
 
-   It would be nice to allow for different scoring methods by use of a [[https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html][Python plugins]].
+   It would be nice to allow for different scoring methods with [[https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html][Python plugins]].
