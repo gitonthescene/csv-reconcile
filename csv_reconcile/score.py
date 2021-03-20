@@ -19,8 +19,8 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
     cur = db.cursor()
     normalizedFields = scorer.getNormalizedFields()
 
-    cur.execute('SELECT word,id,%s from reconcile' %
-                (','.join(normalizedFields,)))
+    cur.execute('SELECT %s from reconcile' %
+                (','.join(('word', 'id') + tuple(normalizedFields))))
 
     picks = defaultdict(list)
     for row in cur:
