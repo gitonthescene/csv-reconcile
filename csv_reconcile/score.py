@@ -40,7 +40,7 @@ def processQueryBatch(batch, limit=None, threshold=0.0, stopwords=None):
     ret = dict()
     for qid in batch:
         pick = picks[qid]
-        lmt = batch[qid].get('limit')
+        lmt = batch[qid].get('limit', limit)
         queryStr = batch[qid]['query']
 
         res = []
