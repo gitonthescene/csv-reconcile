@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "OpenRefine reconciliation service backed by csv resource"
 authors = ["Douglas Mennella <douglas.mennella@gmail.com>"]
 build = "build.py"
+packages = [
+  { include = "csv_reconcile" },
+  { include = "csv_reconcile_dice" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -11,10 +15,14 @@ flask = "^1.1.2"
 flask-cors = "^3.0.10"
 cython = "^0.29.21"
 normality = "^2.1.1"
+importlib_metadata = { version = "^3.7.3", python = "~3.7" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 nose = "^1.3.7"
+
+[tool.poetry.plugins."csv_reconcile.scorers"]
+"dice" = "csv_reconcile_dice"
 
 [tool.poetry.scripts]
 csv-reconcile = "csv_reconcile:main"

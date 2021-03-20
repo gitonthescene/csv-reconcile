@@ -19,7 +19,7 @@ else:
     # This function will be executed in setup.py:
     def build(setup_kwargs):
         # The file you want to compile
-        extensions = ["csv_reconcile/cutils.pyx"]
+        extensions = ["csv_reconcile_dice/cutils.pyx"]
 
         # gcc arguments hack: enable optimizations
         os.environ['CFLAGS'] = '-O3'

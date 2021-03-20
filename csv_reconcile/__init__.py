@@ -11,6 +11,11 @@ from contextlib import contextmanager
 import time
 import click
 
+try:
+    from importlib import metadata
+except:
+    import importlib_metadata as metadata
+
 #------------------------------------------------------------------
 # Implement reconciliation API
 # [[https://reconciliation-api.github.io/specs/latest/]]
@@ -141,13 +146,64 @@ def create_app(setup=None, config=None):
     return app
 
 
+def pickScorer(plugin):
+    eps = metadata.entry_points()['csv_reconcile.scorers']
+    if len(eps) == 0:
+        raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
+    elif plugin:
+        for ep in eps:
+            if ep.name == plugin:
+                return ep
+        else:
+            raise RuntimeError(
+                "Please install %s \"csv_reconcile.scorers\" plugin" %
+                (plugin,))
+    elif len(eps) == 1:
+        return next(iter(eps))
+
+    # print out options
+    print(
+        "There are several scorers available.  Please choose one of the following with the --scorer option."
+    )
+    for ep in eps:
+        print("  %s" % (ep.name,))
+
+    return None
+
+
 @click.command()
 @click.option('--config', help='config file')
+@click.option('--scorer', 'scorerOption', help='scoring plugin to use')
 @click.option('--init-db', is_flag=True, help='initialize the db')
 @click.argument('csvfile')
 @click.argument('idcol')
 @click.argument('namecol')
-def main(config, init_db, csvfile, idcol, namecol):
+def main(config, scorerOption, init_db, csvfile, idcol, namecol):
+    ep = pickScorer(scorerOption)
+    if ep:
+        ep.load()
+    else:
+        return
+
+    eps = metadata.entry_points()['csv_reconcile.scorers']
+    if len(eps) == 0:
+        raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
+    elif scorerOption:
+        for ep in eps:
+            if ep.name == scorerOption:
+                ep.load()
+                break
+        else:
+            raise RuntimeError(
+                "Please install %s \"csv_reconcile.scorers\" plugin" %
+                (scorerOption,))
+    elif len(eps) == 1:
+        ep = next(iter(eps))
+        ep.load()
+    else:
+        # prompt for options and quit
+        pass
+
     app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
     if init_db:
         with app.app_context():

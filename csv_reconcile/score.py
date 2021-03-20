@@ -1,59 +1,6 @@
 from .db import get_db
-from normality import normalize
 from collections import defaultdict
 from . import scorer
-
-try:
-    # Cython if it exists
-    from csv_reconcile.cutils import getDiceCoefficient
-except:
-    from csv_reconcile.utils import getDiceCoefficient
-
-
-# [[https://en.wikipedia.org/wiki/Stop_word]]
-def makeBigrams(word, **scoreOptions):
-    '''
-    Normalize set of bigrams into an ordered string to aid processing
-    '''
-    # Should probably allow stop words
-    # Should probably strip of spaces(?) and punctuation
-    process = normalize(word)
-    stopwords = scoreOptions.get('stopwords', None)
-    if stopwords:
-        process = ' '.join(w for w in process.split() if w not in stopwords)
-
-    return ''.join(
-        sorted(set(process[i:i + 2] for i in range(len(process) - 1))))
-
-
-@scorer.register
-def getNormalizedFields():
-    return ('bigrams',)
-
-
-@scorer.register
-def processScoreOptions(options):
-    if not options:
-        return
-
-    options['stopwords'] = [w.lower() for w in options['stopwords']]
-
-
-@scorer.register
-def scoreMatch(left, right):
-    return getDiceCoefficient(left[0].encode('utf-8'), right[0].encode('utf-8'))
-
-
-@scorer.register
-def normalizeWord(word, **scoreOptions):
-    return (makeBigrams(word, **scoreOptions),)
-
-
-@scorer.register
-def valid(normalizedFields):
-    if not normalizedFields[0]:
-        return False
-    return True
 
 
 def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
@@ -63,7 +10,8 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
     toMatchItems = dict()
     for qid, req in batch.items():
         queryStr = req['query']
-        toMatchItems[qid] = scorer.normalizeWord(queryStr, **scoreOptions)
+        toMatchItems[qid] = scorer.normalizeWord(queryStr, **
+                                                 scoreOptions) or queryStr
 
     # Better to pull these off an sqlite store
     db = get_db()
@@ -76,13 +24,14 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
 
     picks = defaultdict(list)
     for row in cur:
-        if not scorer.valid(row[2:]):
+        compareTo = row[2:] if normalizedFields else row['word']
+        if not scorer.valid(compareTo):
             continue
 
         for qid, req in batch.items():
             toMatch = toMatchItems[qid]
 
-            score = scorer.scoreMatch(toMatch, row[2:])
+            score = scorer.scoreMatch(toMatch, compareTo)
             if score > threshold:
                 picks[qid].append((row, score))
 

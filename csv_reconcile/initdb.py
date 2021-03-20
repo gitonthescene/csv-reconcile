@@ -26,14 +26,15 @@ def initDataTable(colnames, idcol):
 
 def initReconcileTable(colnames):
     db = get_db()
-    cols = []
+    create = [
+        'CREATE TABLE reconcile (\n  id TEXT PRIMARY KEY,\n  word TEXT NOT NULL'
+    ]
     for col in colnames:
-        cols.append('%s TEXT NOT NULL' % (col,))
+        create.append('%s TEXT NOT NULL' % (col,))
         db.execute('INSERT INTO datacols VALUES (?,?)', (col, col))
 
     # create data table with the contents of the csv file
-    createSQL = 'CREATE TABLE reconcile (\n  id TEXT PRIMARY KEY,\n  word TEXT NOT NULL,\n  %s\n)'
-    db.execute(createSQL % (',\n  '.join(cols),))
+    db.execute(',\n  '.join(create) + '\n)')
 
 
 def init_db():
@@ -71,8 +72,8 @@ def init_db():
                 word = row[searchidx]
                 matchFields = scorer.normalizeWord(word, **scoreOptions)
                 db.execute(
-                    "INSERT INTO reconcile VALUES (?,?,%s)" %
-                    (','.join('?' * len(normalizedFields)),),
+                    "INSERT INTO reconcile VALUES (%s)" %
+                    (','.join('?' * (2 + len(normalizedFields))),),
                     (mid, word) + tuple(matchFields))
 
                 db.execute("INSERT INTO data VALUES (%s)" % (datavals), row)
