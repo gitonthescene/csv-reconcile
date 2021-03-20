@@ -81,4 +81,4 @@ def makeBigrams(word, stopwords=None):
     if stopwords:
         process = ' '.join(w for w in process.split() if w not in stopwords)
     return ''.join(
-        sorted(set(process[i:i + 2] for i in range(len(process) - 2))))
+        sorted(set(process[i:i + 2] for i in range(len(process) - 1))))
