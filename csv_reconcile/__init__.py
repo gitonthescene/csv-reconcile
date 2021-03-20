@@ -4,6 +4,7 @@ from .score import processQueryBatch
 from .extend import getCSVCols, processDataExtensionBatch
 from . import initdb
 from . import default_settings
+from . import scorer
 import json
 import os.path
 from contextlib import contextmanager
@@ -49,6 +50,9 @@ def create_app(setup=None, config=None):
         app.config.from_pyfile(config)
 
     app.config.from_mapping(**setup)
+    scoreOptions = app.config.get('SCOREOPTIONS', None)
+    scorer.processScoreOptions(scoreOptions)
+
     if 'MANIFEST' in app.config:
         MANIFEST.update(app.config['MANIFEST'])
 
@@ -77,11 +81,9 @@ def create_app(setup=None, config=None):
 
         threshold = app.config.get('THRESHOLD', None)
         limit = app.config.get('LIMIT', None)
-        stopwords = app.config.get('STOPWORDS', None)
+        scoreOptions = app.config.get('SCOREOPTIONS', {})
         queries = request.form.get('queries')
         extend = request.form.get('extend')
-        if stopwords:
-            stopwords = [w.lower() for w in stopwords]
         if queries:
             queryBatch = json.loads(queries)
 
@@ -90,7 +92,7 @@ def create_app(setup=None, config=None):
                 ret = processQueryBatch(queryBatch,
                                         limit=limit,
                                         threshold=threshold,
-                                        stopwords=stopwords)
+                                        **scoreOptions)
             app.logger.info(ret)
             return ret
         elif extend:

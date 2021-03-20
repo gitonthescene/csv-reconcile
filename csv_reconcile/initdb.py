@@ -1,9 +1,9 @@
 from flask import current_app
 import csv
-from .score import makeBigrams
 from .db import get_db
 from importlib.resources import read_text
 import csv_reconcile
+from . import scorer
 from normality import slugify
 
 
@@ -20,7 +20,20 @@ def initDataTable(colnames, idcol):
         db.execute('INSERT INTO datacols VALUES (?,?)', (col, slug))
 
     # create data table with the contents of the csv file
-    db.execute('CREATE TABLE data (\n  %s\n)' % (',\n  '.join(cols),))
+    createSQL = 'CREATE TABLE data (\n  %s\n)'
+    db.execute(createSQL % (',\n  '.join(cols),))
+
+
+def initReconcileTable(colnames):
+    db = get_db()
+    cols = []
+    for col in colnames:
+        cols.append('%s TEXT NOT NULL' % (col,))
+        db.execute('INSERT INTO datacols VALUES (?,?)', (col, col))
+
+    # create data table with the contents of the csv file
+    createSQL = 'CREATE TABLE reconcile (\n  id TEXT PRIMARY KEY,\n  word TEXT NOT NULL,\n  %s\n)'
+    db.execute(createSQL % (',\n  '.join(cols),))
 
 
 def init_db():
@@ -28,9 +41,7 @@ def init_db():
     idcol, searchcol = current_app.config['CSVCOLS']
     csvfilenm = current_app.config['CSVFILE']
     kwargs = current_app.config.get('CSVKWARGS', {})
-    stopwords = current_app.config.get('STOPWORDS', None)
-    if stopwords:
-        stopwords = [w.lower() for w in stopwords]
+    scoreOptions = current_app.config.get('SCOREOPTIONS', {})
     csvencoding = current_app.config.get('CSVENCODING', None)
     enckwarg = dict()
     if csvencoding:
@@ -49,14 +60,19 @@ def init_db():
             searchidx = header.index(searchcol)
             ididx = header.index(idcol)
 
+            normalizedFields = scorer.getNormalizedFields()
             initDataTable(header, idcol)
+            initReconcileTable(normalizedFields)
 
             datavals = ','.join('?' * len(header))
 
             for row in reader:
                 mid = row[ididx]
                 word = row[searchidx]
-                bigrams = makeBigrams(word, stopwords=stopwords)
-                db.execute("INSERT INTO reconcile VALUES (?,?,?)",
-                           (mid, word, bigrams))
+                matchFields = scorer.normalizeWord(word, **scoreOptions)
+                db.execute(
+                    "INSERT INTO reconcile VALUES (?,?,%s)" %
+                    (','.join('?' * len(normalizedFields)),),
+                    (mid, word) + tuple(matchFields))
+
                 db.execute("INSERT INTO data VALUES (%s)" % (datavals), row)

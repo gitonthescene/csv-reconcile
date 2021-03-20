@@ -1,6 +1,7 @@
 from .db import get_db
 from normality import normalize
 from collections import defaultdict
+from . import scorer
 
 try:
     # Cython if it exists
@@ -9,31 +10,79 @@ except:
     from csv_reconcile.utils import getDiceCoefficient
 
 
-def processQueryBatch(batch, limit=None, threshold=0.0, stopwords=None):
+# [[https://en.wikipedia.org/wiki/Stop_word]]
+def makeBigrams(word, **scoreOptions):
     '''
-    Go through db looking for words with bigrams who score positively
+    Normalize set of bigrams into an ordered string to aid processing
     '''
-    bigrams = dict()
+    # Should probably allow stop words
+    # Should probably strip of spaces(?) and punctuation
+    process = normalize(word)
+    stopwords = scoreOptions.get('stopwords', None)
+    if stopwords:
+        process = ' '.join(w for w in process.split() if w not in stopwords)
+
+    return ''.join(
+        sorted(set(process[i:i + 2] for i in range(len(process) - 1))))
+
+
+@scorer.register
+def getNormalizedFields():
+    return ('bigrams',)
+
+
+@scorer.register
+def processScoreOptions(options):
+    if not options:
+        return
+
+    options['stopwords'] = [w.lower() for w in options['stopwords']]
+
+
+@scorer.register
+def scoreMatch(left, right):
+    return getDiceCoefficient(left[0].encode('utf-8'), right[0].encode('utf-8'))
+
+
+@scorer.register
+def normalizeWord(word, **scoreOptions):
+    return (makeBigrams(word, **scoreOptions),)
+
+
+@scorer.register
+def valid(normalizedFields):
+    if not normalizedFields[0]:
+        return False
+    return True
+
+
+def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
+    '''
+    Go through db looking for words whose fuzzy match score positively
+    '''
+    toMatchItems = dict()
     for qid, req in batch.items():
         queryStr = req['query']
-        bigrams[qid] = makeBigrams(queryStr, stopwords=stopwords)
+        toMatchItems[qid] = scorer.normalizeWord(queryStr, **scoreOptions)
 
     # Better to pull these off an sqlite store
     db = get_db()
 
     cur = db.cursor()
-    cur.execute('SELECT bigrams,word,id from reconcile')
+    normalizedFields = scorer.getNormalizedFields()
+
+    cur.execute('SELECT word,id,%s from reconcile' %
+                (','.join(normalizedFields,)))
+
     picks = defaultdict(list)
     for row in cur:
-        if not row['bigrams']:
+        if not scorer.valid(row[2:]):
             continue
 
         for qid, req in batch.items():
-            qBigrams = bigrams[qid]
+            toMatch = toMatchItems[qid]
 
-            # Should ensure that these bigrams are ascii, ideally with no escaping
-            score = getDiceCoefficient(qBigrams.encode('utf-8'),
-                                       row['bigrams'].encode('utf-8'))
+            score = scorer.scoreMatch(toMatch, row[2:])
             if score > threshold:
                 picks[qid].append((row, score))
 
@@ -68,17 +117,3 @@ def processQueryBatch(batch, limit=None, threshold=0.0, stopwords=None):
         ret[qid] = dict(result=res)
 
     return ret
-
-
-# [[https://en.wikipedia.org/wiki/Stop_word]]
-def makeBigrams(word, stopwords=None):
-    '''
-    Normalize set of bigrams into an ordered string to aid processing
-    '''
-    # Should probably allow stop words
-    # Should probably strip of spaces(?) and punctuation
-    process = normalize(word)
-    if stopwords:
-        process = ' '.join(w for w in process.split() if w not in stopwords)
-    return ''.join(
-        sorted(set(process[i:i + 2] for i in range(len(process) - 1))))
