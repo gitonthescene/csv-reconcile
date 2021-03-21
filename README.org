@@ -69,7 +69,7 @@
      e.g. ~CSVKWARGS={'delimiter': ',',  quotechar='"'}~ for comma delimited files using ~"~ as quote character.
    - ~CSVECODING~ - Encoding of the CSV file.
      e.g. ~CSVECODING='utf-8-sig'~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
-   - ~SCOROPTIONS~  - Options passed to scoring plugin during normalization.
+   - ~SCOREOPTIONS~  - Options passed to scoring plugin during normalization.
      e.g. ~SCOREOPTIONS={'stopwords':['lake','reservoir']}~
    - ~LIMIT~      - The maximum number of reonciliation candidates returned per entry.
      e.g. ~LIMIT=10~
