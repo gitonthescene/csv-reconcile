@@ -16,6 +16,7 @@ try:
 except:
     import importlib_metadata as metadata
 
+__version__ = '0.1.0'
 #------------------------------------------------------------------
 # Implement reconciliation API
 # [[https://reconciliation-api.github.io/specs/latest/]]
@@ -39,15 +40,15 @@ MANIFEST = {
     "schemaSpace": "http://localhost/csv_reconcile/schema",
     "extend": {
         "propose_properties": {
-            "service_url": "http://127.0.0.1:5000",
+            "service_url": "http://localhost:5000",
             "service_path": "/properties"
         }
     }
 }
 
 
-def create_app(setup=None, config=None):
-    app = Flask("csv-reconcile")
+def create_app(setup=None, config=None, instance_path=None):
+    app = Flask("csv-reconcile", instance_path=instance_path)
     # Could make dbname configurable
     # possibly better to roll THRESHOLD and LIMIT into one config called LIMITS
     app.config.from_object(default_settings)
@@ -55,7 +56,7 @@ def create_app(setup=None, config=None):
         app.config.from_pyfile(config)
 
     app.config.from_mapping(**setup)
-    scoreOptions = app.config.get('SCOREOPTIONS', None)
+    scoreOptions = app.config['SCOREOPTIONS']
     scorer.processScoreOptions(scoreOptions)
 
     if 'MANIFEST' in app.config:
@@ -83,10 +84,9 @@ def create_app(setup=None, config=None):
     @app.route('/reconcile', methods=['POST', 'GET'])
     @cross_origin()
     def acceptQuery():
-
         threshold = app.config.get('THRESHOLD', None)
         limit = app.config.get('LIMIT', None)
-        scoreOptions = app.config.get('SCOREOPTIONS', {})
+        scoreOptions = app.config['SCOREOPTIONS']
         queries = request.form.get('queries')
         extend = request.form.get('extend')
         if queries:
