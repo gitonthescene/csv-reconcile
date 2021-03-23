@@ -55,6 +55,7 @@
 
    Options:
      --config TEXT  config file
+     --scorer TEXT  scoring plugin to use
      --init-db      initialize the db
      --help         Show this message and exit.
    $
@@ -65,15 +66,17 @@
    configuration is simply setting variables to constant values.
 
 ** Common configuration
+   - ~SERVER_NAME~  - The host and port the service is bound to.
+     e.g. ~SERVER_NAME=localhost:5555~.  ( Default localhost:5000 )
    - ~CSVKWARGS~  - Arguments to pass to [[https://docs.python.org/3/library/csv.html][csv.reader]].
      e.g. ~CSVKWARGS={'delimiter': ',',  quotechar='"'}~ for comma delimited files using ~"~ as quote character.
    - ~CSVECODING~ - Encoding of the CSV file.
      e.g. ~CSVECODING='utf-8-sig'~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
    - ~SCOREOPTIONS~  - Options passed to scoring plugin during normalization.
      e.g. ~SCOREOPTIONS={'stopwords':['lake','reservoir']}~
-   - ~LIMIT~      - The maximum number of reonciliation candidates returned per entry.
+   - ~LIMIT~      - The maximum number of reonciliation candidates returned per entry.  ( Default 10 )
      e.g. ~LIMIT=10~
-   - ~THRESHOLD~  - The minimum score for returned reconciliation candidates.
+   - ~THRESHOLD~  - The minimum score for returned reconciliation candidates.  ( Default 30.0 )
      e.g. ~THRESHOLD=80.5~
    - ~DATABASE~   - The name of the generated sqlite database containing pre-processed values.  (Default ~csvreconcile.db~)
      e.g. ~DATABASE='lakes.db'~  You may want to change the name of the database if you regularly switch between databases being used.
@@ -84,11 +87,11 @@
    contains [[https://www.wikidata.org/wiki/Help:Items][Q values]], then a manifest like the following will allow your links to be clickable inside OpenRefine.
 
    #+begin_src json
-    MANIFEST = {
-    "identifierSpace": "http://www.wikidata.org/entity/",
-    "schemaSpace": "http://www.wikidata.org/prop/direct/",
-    "view": {"url":"https://www.wikidata.org/wiki/{{id}}"},
-    "name": "My reconciliation service"
+   MANIFEST = {
+     "identifierSpace": "http://www.wikidata.org/entity/",
+     "schemaSpace": "http://www.wikidata.org/prop/direct/",
+     "view": {"url":"https://www.wikidata.org/wiki/{{id}}"},
+     "name": "My reconciliation service"
    }
    #+end_src
 
@@ -96,6 +99,53 @@
    parts of their manifest to make use of their features, such as the [[https://reconciliation-api.github.io/specs/latest/#preview-service][preview service]].  See the
    reconciliation spec for details.
 
+** Scoring plugins
+   As mentioned above the default scoring method is to use [[https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient][Dice coefficient scoring]], but this method
+   can be overridden by implementing a ~cvs_reconcile.scorers~ plugin.
+
+*** Implementing
+   A plugin module may override any of the methods in the ~csv_reconcile.scorers~ module by simply
+   implementing a method of the same name with the decorator ~@cvs_reconcile.scorer.register~.
+
+   See ~csv_reconcile_dice~ for how Dice coefficient scoring is implemented.
+
+   The basic hooks are as follows:
+   - ~normalizedWord(word, **scoreOptions)~ preprocesses values to be reconciled to produce a
+     tuple used in fuzzy match scoring.  Note that this preprocessing happens for both the value to
+     be reconciled and to all the values in the csv column to be reconciled against.  The value of
+     ~SCOREOPTIONS~ in the configuration will be passed in to allow configuration of this
+     preprocessing.  This hook is required.
+   - ~getNormalizedFields()~ returns a tuple of names for the columns produced by ~normalizeWord()~.
+     The length of the return value from both functions must match.  This hook is required.
+   - ~processScoreOptions(options)~ is passed the value of ~SCOREOPTIONS~ to allow it to be adjusted
+     prior to being used.  This can be used for adding defaults and/or validating the configuration.
+     This hook is optional
+   - ~scoreMatch(left, right)~ gets passed two tuples as returned by ~normalizedWord()~.  The ~left~
+     value is the value being reconciled and the ~right~ value is the value being reconciled
+     against.  This hook is required.
+   - ~valid(normalizedFields)~ is passed the normalized tuple prior to being scored to make sure
+     it's appropriate for the calculation.  This hook is optional.
+
+*** Installing
+    Hooks are automatically discovered as long as they provide a ~csv_reconcile.scorers~ [[https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html][setuptools
+    entry point]].  Poetry supplies a [[https://python-poetry.org/docs/pyproject/#plugins][plugins]] configuration which wraps the setuptools funtionality.
+
+    The default Dice coefficent scoring is supplied via the following snippet from ~pyproject.toml~
+    file.
+
+    #+begin_src
+    [tool.poetry.plugins."csv_reconcile.scorers"]
+    "dice" = "csv_reconcile_dice"
+    #+end_src
+
+    Here ~dice~ becomes the name of the scoring option and ~csv_reconcile_dice~ is the package
+    implementing the plugin.
+
+*** Using
+    If there is only one scoring plugin available, that plugin is used.  If there are more than one
+    available, you will be prompted to pass the ~--scorer~ option to select among the scoring options.
+
 ** Future enhancements
 
-   It would be nice to allow for different scoring methods with [[https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html][Python plugins]].
+   It would be nice to add support for using [[https://reconciliation-api.github.io/specs/latest/#structure-of-a-reconciliation-query][properties]] as part of the scoring, so that more than
+   one column of the csv could be taken into consideration.
