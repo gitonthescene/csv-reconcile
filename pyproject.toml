@@ -1,8 +1,15 @@
 [tool.poetry]
 name = "csv-reconcile"
-version = "0.1.1"
+version = "0.1.2"
 description = "OpenRefine reconciliation service backed by csv resource"
-authors = ["Douglas Mennella <douglas.mennella@gmail.com>"]
+authors = ["Douglas Mennella <trx2358-pypi@yahoo.com>"]
+license = "MIT"
+readme = 'README.md'
+repository = "https://github.com/gitonthescene/csv-reconcile"
+keywords = ["OpenRefine",
+            "reconcile",
+            "fuzzy search"]
+
 build = "build.py"
 packages = [
   { include = "csv_reconcile" },
