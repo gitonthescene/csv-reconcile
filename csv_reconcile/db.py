@@ -2,6 +2,12 @@ import sqlite3
 import os.path
 from flask import current_app, g
 
+from normality import slugify
+
+
+def normalizeDBcol(col):
+    return slugify(col).replace('-', '_')
+
 
 def get_db():
     if 'db' not in g:

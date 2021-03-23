@@ -1,17 +1,17 @@
 from flask import current_app
 import csv
-from .db import get_db
+from .db import get_db, normalizeDBcol
+
 from importlib.resources import read_text
 import csv_reconcile
 from . import scorer
-from normality import slugify
 
 
 def initDataTable(colnames, idcol):
     db = get_db()
     cols = []
     for col in colnames:
-        slug = slugify(col)
+        slug = normalizeDBcol(col)
         if col == idcol:
             cols.append('%s TEXT PRIMARY KEY' % (slug,))
         else:
@@ -31,7 +31,6 @@ def initReconcileTable(colnames):
     ]
     for col in colnames:
         create.append('%s TEXT NOT NULL' % (col,))
-        db.execute('INSERT INTO datacols VALUES (?,?)', (col, col))
 
     # create data table with the contents of the csv file
     db.execute(',\n  '.join(create) + '\n)')
@@ -42,7 +41,7 @@ def init_db():
     idcol, searchcol = current_app.config['CSVCOLS']
     csvfilenm = current_app.config['CSVFILE']
     kwargs = current_app.config.get('CSVKWARGS', {})
-    scoreOptions = current_app.config.get('SCOREOPTIONS', {})
+    scoreOptions = current_app.config['SCOREOPTIONS']
     csvencoding = current_app.config.get('CSVENCODING', None)
     enckwarg = dict()
     if csvencoding:
