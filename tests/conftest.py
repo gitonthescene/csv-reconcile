@@ -67,19 +67,31 @@ LOGLEVEL=logging.DEBUG'''
 
 
 @pytest.fixture
-def app(setup, config, plugins, tmp_path):
+def app(plugins, tmp_path):
     '''flask app'''
     # Apply the dice plugin
     plugins['dice'].load()
 
-    app = create_app(setup, config, instance_path=tmp_path / "instance")
-    with app.app_context():
-        initdb.init_db()
+    def getApp(setup, config):
+        app = create_app(setup, config, instance_path=tmp_path / "instance")
+        with app.app_context():
+            initdb.init_db()
 
-    return app
+        return app
+
+    return getApp
 
 
 @pytest.fixture
 def client(app):
     '''http client'''
-    return app.test_client()
+
+    def getClient(setup, config):
+        return app(setup, config).test_client()
+
+    return getClient
+
+
+@pytest.fixture
+def basicClient(client, setup, config):
+    return client(setup, config)
