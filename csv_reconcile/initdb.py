@@ -69,7 +69,7 @@ def init_db():
             for row in reader:
                 mid = row[ididx]
                 word = row[searchidx]
-                matchFields = scorer.normalizeWord(word, **scoreOptions)
+                matchFields = scorer.normalizeRow(word, row, **scoreOptions)
                 db.execute(
                     "INSERT INTO reconcile VALUES (%s)" %
                     (','.join('?' * (2 + len(normalizedFields))),),

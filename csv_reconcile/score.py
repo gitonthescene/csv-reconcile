@@ -31,7 +31,7 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
         for qid, req in batch.items():
             toMatch = toMatchItems[qid]
 
-            score = scorer.scoreMatch(toMatch, compareTo)
+            score = scorer.scoreMatch(toMatch, compareTo, **scoreOptions)
             if score > threshold:
                 picks[qid].append((row, score))
 

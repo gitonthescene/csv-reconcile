@@ -65,7 +65,7 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
 
         availableCols[itm['id']] = itm['name']
 
-    assert set(availableCols) == set(header).difference((idcol, namecol))
+    assert set(availableCols) == set(header)
 
     colid = typicalrow[ididx]
     req = {'ids': [colid], 'properties': cols['properties']}

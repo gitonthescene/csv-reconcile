@@ -3,13 +3,10 @@ from .db import get_db, normalizeDBcol
 
 
 def getCSVCols():
-    csvcols = current_app.config['CSVCOLS']
     db = get_db()
     cur = db.cursor()
     cur.execute("SELECT * FROM datacols")
-    return [(row['colname'], row['name'])
-            for row in cur
-            if row['name'] not in csvcols]
+    return [(row['colname'], row['name']) for row in cur]
 
 
 def processDataExtensionBatch(batch):

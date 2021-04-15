@@ -110,19 +110,25 @@
    See ~csv_reconcile_dice~ for how Dice coefficient scoring is implemented.
 
    The basic hooks are as follows:
-   - ~normalizedWord(word, **scoreOptions)~ preprocesses values to be reconciled to produce a
-     tuple used in fuzzy match scoring.  Note that this preprocessing happens for both the value to
-     be reconciled and to all the values in the csv column to be reconciled against.  The value of
-     ~SCOREOPTIONS~ in the configuration will be passed in to allow configuration of this
-     preprocessing.  This hook is required.
+   - ~normalizedWord(word, **scoreOptions)~ preprocesses values to be reconciled to produce a tuple
+     used in fuzzy match scoring.  The value of ~SCOREOPTIONS~ in the configuration will be passed
+     in to allow configuration of this preprocessing.  This hook is required.
+   - ~normalizedRow(word, row, **scoreOptions)~ preprocesses values to be reconciled against to
+     produce a tuple used in fuzzy match scoring.  Note that both the reconciled column and the
+     entire row is available for calculating the normalized value and that the column reconciled
+     against is required even when not used.  The value of ~SCOREOPTIONS~ in the configuration will
+     be passed in to allow configuration of this preprocessing.  This defaults to calling
+     normalizeWord(word,**scoreOptions).
    - ~getNormalizedFields()~ returns a tuple of names for the columns produced by ~normalizeWord()~.
-     The length of the return value from both functions must match.  This hook is required.
+     The length of the return value from both functions must match.  This defaults to calling
+     normalizeWord(word,**scoreOptions).  This hook is required.
    - ~processScoreOptions(options)~ is passed the value of ~SCOREOPTIONS~ to allow it to be adjusted
      prior to being used.  This can be used for adding defaults and/or validating the configuration.
      This hook is optional
-   - ~scoreMatch(left, right)~ gets passed two tuples as returned by ~normalizedWord()~.  The ~left~
-     value is the value being reconciled and the ~right~ value is the value being reconciled
-     against.  This hook is required.
+   - ~scoreMatch(left, right, **scoreOptions)~ gets passed two tuples as returned by
+     ~normalizedWord()~.  The ~left~ value is the value being reconciled and the ~right~ value is
+     the value being reconciled against.  The value of ~SCOREOPTIONS~ in the configuration will be
+     passed in to allow configuration of this preprocessing.  This hook is required.
    - ~valid(normalizedFields)~ is passed the normalized tuple prior to being scored to make sure
      it's appropriate for the calculation.  This hook is optional.
 
