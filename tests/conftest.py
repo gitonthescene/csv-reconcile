@@ -1,5 +1,6 @@
 import pytest
-from csv_reconcile import create_app, initdb
+from csv_reconcile import create_app, initdb, scorer
+import types
 try:
     from importlib import metadata
 except:
@@ -64,6 +65,19 @@ LOGLEVEL=logging.DEBUG'''
     p.write_text(filecontents)
 
     return p
+
+
+@pytest.fixture
+def mockPlugin():
+    '''save/restore original plugin API'''
+    saveOrig = {
+        nm: vl
+        for nm, vl in scorer.__dict__.items()
+        if type(vl) == types.FunctionType
+    }
+    yield saveOrig
+    for nm, fn in saveOrig.items():
+        setattr(scorer, nm, fn)
 
 
 @pytest.fixture

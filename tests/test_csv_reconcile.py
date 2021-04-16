@@ -1,5 +1,5 @@
 import pytest
-from csv_reconcile import __version__
+from csv_reconcile import __version__, scorer
 import json
 from urllib.parse import urlencode
 
@@ -202,3 +202,63 @@ def test_reconcile_automatch(basicClient, formContentHeader):
     result = matchBatch['q0']['result']
     assert len(result) == 1
     assert result[0]['score'] != 100.0 and result[0]['match'] == True
+
+
+def test_plugin(mockPlugin, client, setup, config, csvcontents,
+                formContentHeader):
+    # Since used in closure pass in "by reference"
+    p, gn, nw, sm, v = list(range(5))
+    called = [0] * 5
+
+    @scorer.register
+    def processScoreOptions(options):
+        called[p] += 1
+
+    @scorer.register
+    def getNormalizedFields():
+        # one normalized field
+        called[gn] += 1
+        return ('dummy',)
+
+    @scorer.register
+    def normalizeWord(word, **scoreOptions):
+        # everything normalizes to COW thus everything matches
+        called[nw] += 1
+        return ("COW",)
+
+    @scorer.register
+    def scoreMatch(left, right):
+        # Count the number of letters in common
+        called[sm] += 1
+        left, right = left[0], right[0]
+        return len(set(left).intersection(right)) / len(left) * 100.0
+
+    @scorer.register
+    def valid(normalizedFields):
+        called[v] += 1
+        return True
+
+    theClient = client(setup, config)
+
+    # processScoreOptions, getNormalizedFields, and normalizeWord all called during setup
+    # scoreMatch and valid not yet called
+    assert all(called[itm] > 0 for itm in (p, gn, nw))
+    assert called[sm:] == [0, 0]
+
+    # total number of rows minus 1 for the header row
+    nRows = len(csvcontents.splitlines()) - 1
+
+    query = {'q0': {'query': 'mxyzptlk'}}
+    queryjson = json.dumps(query)
+    response = theClient.post('/reconcile',
+                              data=urlencode([('queries', queryjson)]),
+                              headers=formContentHeader)
+    assert response.status_code == 200
+
+    matchBatch = json.loads(response.data)
+
+    assert len(matchBatch['q0']['result']) == nRows
+    assert all(called[itm] > 0 for itm in (p, gn, nw, sm, v))
+
+    # processScoreOptions still called once, getNormalizedFields only called twice
+    assert called[:2] == [1, 2]
