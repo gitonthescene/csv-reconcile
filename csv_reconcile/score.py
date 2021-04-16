@@ -32,7 +32,7 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
             toMatch = toMatchItems[qid]
 
             score = scorer.scoreMatch(toMatch, compareTo, **scoreOptions)
-            if score > threshold:
+            if score is not None and score > threshold:
                 picks[qid].append((row, score))
 
     ret = dict()

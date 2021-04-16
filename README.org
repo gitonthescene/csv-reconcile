@@ -128,7 +128,8 @@
    - ~scoreMatch(left, right, **scoreOptions)~ gets passed two tuples as returned by
      ~normalizedWord()~.  The ~left~ value is the value being reconciled and the ~right~ value is
      the value being reconciled against.  The value of ~SCOREOPTIONS~ in the configuration will be
-     passed in to allow configuration of this preprocessing.  This hook is required.
+     passed in to allow configuration of this preprocessing.  Returning a score of ~None~ will not
+     add tested value as a candidate. This hook is required.
    - ~valid(normalizedFields)~ is passed the normalized tuple prior to being scored to make sure
      it's appropriate for the calculation.  This hook is optional.
 
