@@ -57,13 +57,11 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
     assert type(cols['properties']) == list  # [ {id:..., name:...}, ... ]
 
     # Every thing but id and name col available for extension
-    availableCols = {}
+    availableCols = []
     for itm in cols['properties']:
-
-        # internal and external column name
         assert set(itm.keys()) == set(('id', 'name'))
 
-        availableCols[itm['id']] = itm['name']
+        availableCols.append(itm['id'])
 
     assert set(availableCols) == set(header)
 
@@ -83,12 +81,12 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
     assert colid in extenddata['rows']
 
     row = extenddata['rows'][colid]
-    for colextra, colextra_dbnm in availableCols.items():
+    for colextra in availableCols:
         exidx = header.index(colextra)
 
-        assert colextra_dbnm in row
+        assert colextra in row
 
-        for choice in row[colextra_dbnm]:
+        for choice in row[colextra]:
             assert 'str' in choice
             assert choice['str'] == typicalrow[exidx]
 
