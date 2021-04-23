@@ -69,7 +69,7 @@
    - ~SERVER_NAME~  - The host and port the service is bound to.
      e.g. ~SERVER_NAME=localhost:5555~.  ( Default localhost:5000 )
    - ~CSVKWARGS~  - Arguments to pass to [[https://docs.python.org/3/library/csv.html][csv.reader]].
-     e.g. ~CSVKWARGS={'delimiter': ',',  quotechar='"'}~ for comma delimited files using ~"~ as quote character.
+     e.g. ~CSVKWARGS={'delimiter': ',', 'quotechar': '"'}~ for comma delimited files using ~"~ as quote character.
    - ~CSVENCODING~ - Encoding of the CSV file.
      e.g. ~CSVECODING='utf-8-sig'~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
    - ~SCOREOPTIONS~  - Options passed to scoring plugin during normalization.
