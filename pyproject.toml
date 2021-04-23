@@ -31,11 +31,14 @@ poethepoet = "^0.10.0"
 
 [tool.poe.tasks]
 dummydoc = { script = "csv_reconcile.build:dummydoc" }
-poetrybuild = "poetry build"
 test = "pytest -v"
 build = [
   { ref = "dummydoc" },
-  { ref = "poetrybuild" }
+  { cmd = "poetry build" }
+]
+install = [
+  { ref = "dummydoc" },
+  { cmd = "poetry install" }
 ]
 
 
