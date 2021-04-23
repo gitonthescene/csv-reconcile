@@ -6,7 +6,7 @@
    - Run the service
      #+begin_src sh
      $ python -m venv venv                                             # create virtualenv
-     $ venv/bin/pip install dist/csv_reconcile-0.1.0-py3-none-any.whl  # install package
+     $ venv/bin/pip install csv-reconcile                              # install package
      $ source venv/bin/activate                                        # activate virtual environment
      (venv) $ csv-reconcile --init-db sample/reps.tsv item itemLabel   # start the service
      (venv) $ deactivate                                               # remove virtual environment
@@ -18,7 +18,7 @@
 
    If you have a C compiler installed you may prefer to install the sdist
    ~dist/csv-reconcile-0.1.0.tar.gz~ which will build a [[https://cython.readthedocs.io/en/latest/][Cython]] version of the computationally
-   intensive fuzzy match routine for speed.
+   intensive fuzzy match routine for speed.  With ~pip~ add the option ~--no-binary csv-reconcile~.
 
 ** Poetry
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
@@ -26,6 +26,18 @@
    $ poetry install
    $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
    #+end_src
+
+*** Building
+    Because this package uses a ~README.org~ file and ~pip~ requires a ~README.md~, there are extra
+    build steps beyond what ~poetry~ supplies.  These are managed using [[https://pypi.org/project/poethepoet/0.0.3/][poethepoet]].  Thus building is
+    done as follows:
+
+    #+begin_src sh
+    $ poetry run poe build
+    #+end_src
+
+    If you want to build a platform agnostic wheel, you'll have to comment out the ~build =
+    "build.py"~ line from ~pyproject.toml~ until ~poetry~ supports [[https://github.com/python-poetry/poetry/issues/3594][selecting build platform]].
 
 ** Description
 
