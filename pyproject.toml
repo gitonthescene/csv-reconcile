@@ -34,6 +34,7 @@ dummydoc = { script = "csv_reconcile.build:dummydoc" }
 test = "pytest -v"
 build = [
   { ref = "dummydoc" },
+  { ref = "test" },
   { cmd = "poetry build" }
 ]
 install = [
