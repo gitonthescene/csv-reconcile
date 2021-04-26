@@ -164,6 +164,9 @@
     If there is only one scoring plugin available, that plugin is used.  If there are more than one
     available, you will be prompted to pass the ~--scorer~ option to select among the scoring options.
 
+*** Known plugins
+    See [wiki](https://github.com/gitonthescene/csv-reconcile-levenshtein/wiki) for list of known plugins.
+
 ** Future enhancements
 
    It would be nice to add support for using [[https://reconciliation-api.github.io/specs/latest/#structure-of-a-reconciliation-query][properties]] as part of the scoring, so that more than
