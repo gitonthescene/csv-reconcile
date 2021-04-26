@@ -165,7 +165,7 @@
     available, you will be prompted to pass the ~--scorer~ option to select among the scoring options.
 
 *** Known plugins
-    See [wiki](https://github.com/gitonthescene/csv-reconcile-levenshtein/wiki) for list of known plugins.
+    See [[https://github.com/gitonthescene/csv-reconcile-levenshtein/wiki][wiki]] for list of known plugins.
 
 ** Future enhancements
 
