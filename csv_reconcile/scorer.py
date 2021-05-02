@@ -42,3 +42,16 @@ def normalizeRow(word, row, **scoreOptions):
 def valid(normalizedFields):
     '''Optionally validate column before performing match calculation'''
     return True
+
+
+# [[https://reconciliation-api.github.io/specs/latest/#reconciliation-query-responses]]
+def features(word, row, **scoreOptions):
+    '''
+    Takes the queryString and the normalized row and calculates features.
+    The calculation is disabled by default.
+    '''
+    # This is just a dummy result since features are disabled by default.
+    return [dict(id="someid", value=15), dict(id="someotherid", value=19)]
+
+
+features.disabled = True
