@@ -22,14 +22,15 @@
    intensive fuzzy match routine for speed.  With ~pip~ add the option ~--no-binary csv-reconcile~.
 
 ** Poetry
+*** Prerequesites
+    You'll need to have both [[https://python-poetry.org/docs/][poetry]] and [[https://pypi.org/project/poethepoet/0.0.3/][poethepoet]] installed.  For publishing to [[https://pypi.org/][PyPI]] [[https://pandoc.org/][pandoc]] is required.
+
+*** Running
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
    #+begin_src sh
    $ poetry run poe install
    $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
    #+end_src
-
-*** Prerequesites
-    You'll need to have both [[https://python-poetry.org/docs/][poetry]] and [[https://pypi.org/project/poethepoet/0.0.3/][poethepoet]] installed.  For publishing to [[https://pypi.org/][PyPI]] [[https://pandoc.org/][pandoc]] is required.
 
 *** Building
     Because this package uses a ~README.org~ file and ~pip~ requires a ~README.md~, there are extra
