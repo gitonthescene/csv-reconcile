@@ -26,8 +26,6 @@ importlib_metadata = { version = "^3.7.3", python = "~3.7" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-nose = "^1.3.7"
-poethepoet = "^0.10.0"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
