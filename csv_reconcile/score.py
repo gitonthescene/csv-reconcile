@@ -16,7 +16,7 @@ def processQueryBatch(db, batch, limit=None, threshold=0.0, **scoreOptions):
     '''
     Go through db looking for words whose fuzzy match score positively
     '''
-    hasFeatures = getattr(scorer.features, "disabled", False)
+    hasFeatures = not getattr(scorer.features, "disabled", False)
 
     toMatchItems = dict()
     for qid, req in batch.items():
