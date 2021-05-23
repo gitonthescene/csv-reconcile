@@ -38,7 +38,7 @@ def processScoreOptions(options):
 
 
 @scorer.register
-def scoreMatch(left, right):
+def scoreMatch(left, right, **scoreOptions):
     return getDiceCoefficient(left[0].encode('utf-8'), right[0].encode('utf-8'))
 
 

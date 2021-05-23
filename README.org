@@ -28,7 +28,7 @@
 *** Running
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
    #+begin_src sh
-   $ poetry run poe install
+   $ poe install
    $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
    #+end_src
 
@@ -38,7 +38,7 @@
     done as follows:
 
     #+begin_src sh
-    $ poetry run poe build
+    $ poe build
     #+end_src
 
     If you want to build a platform agnostic wheel, you'll have to comment out the ~build =

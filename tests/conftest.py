@@ -89,7 +89,7 @@ def app(plugins, tmp_path):
     def getApp(setup, config):
         app = create_app(setup, config, instance_path=tmp_path / "instance")
         with app.app_context():
-            initdb.init_db()
+            initdb.init_db_with_context()
 
         return app
 

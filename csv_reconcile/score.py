@@ -1,9 +1,18 @@
-from .db import get_db
 from collections import defaultdict
 from . import scorer
 
 
-def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
+def reconcileStrings(db, items, **kwargs):
+    # Use index as query id
+    batch = dict(enumerate({'query': s} for s in items))
+
+    ret = processQueryBatch(db, batch, **kwargs)
+
+    # Return as a list of pairs of query matched to result
+    return list(zip(items, (res for _, res in sorted(ret.items()))))
+
+
+def processQueryBatch(db, batch, limit=None, threshold=0.0, **scoreOptions):
     '''
     Go through db looking for words whose fuzzy match score positively
     '''
@@ -16,7 +25,6 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
                                                  scoreOptions) or queryStr
 
     # Better to pull these off an sqlite store
-    db = get_db()
 
     cur = db.cursor()
     normalizedFields = scorer.getNormalizedFields()
@@ -30,7 +38,7 @@ def processQueryBatch(batch, limit=None, threshold=0.0, **scoreOptions):
         if not scorer.valid(compareTo):
             continue
 
-        for qid, req in batch.items():
+        for qid in batch.keys():
             toMatch = toMatchItems[qid]
 
             score = scorer.scoreMatch(toMatch, compareTo, **scoreOptions)

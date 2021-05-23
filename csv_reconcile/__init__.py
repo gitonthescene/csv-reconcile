@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import cross_origin
 from .score import processQueryBatch
 from .extend import getCSVCols, processDataExtensionBatch
+from .db import get_db
 from . import initdb
 from . import default_settings
 from . import scorer
@@ -90,11 +91,14 @@ def create_app(setup=None, config=None, instance_path=None):
         queries = request.form.get('queries')
         extend = request.form.get('extend')
         if queries:
+            db = get_db()
+
             queryBatch = json.loads(queries)
 
             app.logger.info(queryBatch)
             with Timer():
-                ret = processQueryBatch(queryBatch,
+                ret = processQueryBatch(db,
+                                        queryBatch,
                                         limit=limit,
                                         threshold=threshold,
                                         **scoreOptions)
@@ -207,7 +211,7 @@ def main(config, scorerOption, init_db, csvfile, idcol, namecol):
     app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
     if init_db:
         with app.app_context():
-            initdb.init_db()
+            initdb.init_db_with_context()
             click.echo('Initialized the database.')
 
     from werkzeug.serving import WSGIRequestHandler

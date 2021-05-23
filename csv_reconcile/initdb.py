@@ -7,8 +7,7 @@ import csv_reconcile
 from . import scorer
 
 
-def initDataTable(colnames, idcol):
-    db = get_db()
+def initDataTable(db, colnames, idcol):
     cols = []
     for col in colnames:
         slug = normalizeDBcol(col)
@@ -24,8 +23,7 @@ def initDataTable(colnames, idcol):
     db.execute(createSQL % (',\n  '.join(cols),))
 
 
-def initReconcileTable(colnames):
-    db = get_db()
+def initReconcileTable(db, colnames):
     create = [
         'CREATE TABLE reconcile (\n  id TEXT PRIMARY KEY,\n  word TEXT NOT NULL'
     ]
@@ -36,13 +34,14 @@ def initReconcileTable(colnames):
     db.execute(',\n  '.join(create) + '\n)')
 
 
-def init_db():
-    db = get_db()
-    idcol, searchcol = current_app.config['CSVCOLS']
-    csvfilenm = current_app.config['CSVFILE']
-    kwargs = current_app.config.get('CSVKWARGS', {})
-    scoreOptions = current_app.config['SCOREOPTIONS']
-    csvencoding = current_app.config.get('CSVENCODING', None)
+def init_db(db,
+            csvfilenm,
+            idcol,
+            searchcol,
+            csvencoding=None,
+            scoreOptions=None,
+            csvkwargs=None):
+
     enckwarg = dict()
     if csvencoding:
         enckwarg['encoding'] = csvencoding
@@ -50,10 +49,12 @@ def init_db():
     schema = read_text(csv_reconcile, 'schema.sql')
     db.executescript(schema)
 
+    csvkwargs = {} if csvkwargs is None else csvkwargs
+
     with db:
         # Create a table with ids (as PRIMARY ID), words and bigrams
         with open(csvfilenm, newline='', **enckwarg) as csvfile:
-            reader = csv.reader(csvfile, **kwargs)
+            reader = csv.reader(csvfile, **csvkwargs)
             header = next(reader)
 
             # Throws if col doesn't exist
@@ -61,8 +62,8 @@ def init_db():
             ididx = header.index(idcol)
 
             normalizedFields = scorer.getNormalizedFields()
-            initDataTable(header, idcol)
-            initReconcileTable(normalizedFields)
+            initDataTable(db, header, idcol)
+            initReconcileTable(db, normalizedFields)
 
             datavals = ','.join('?' * len(header))
 
@@ -76,3 +77,20 @@ def init_db():
                     (mid, word) + tuple(matchFields))
 
                 db.execute("INSERT INTO data VALUES (%s)" % (datavals), row)
+
+
+def init_db_with_context():
+    db = get_db()
+    idcol, searchcol = current_app.config['CSVCOLS']
+    csvfilenm = current_app.config['CSVFILE']
+    csvkwargs = current_app.config.get('CSVKWARGS', {})
+    scoreOptions = current_app.config['SCOREOPTIONS']
+    csvencoding = current_app.config.get('CSVENCODING', None)
+
+    return init_db(db,
+                   csvfilenm,
+                   idcol,
+                   searchcol,
+                   csvencoding=csvencoding,
+                   csvkwargs=csvkwargs,
+                   scoreOptions=scoreOptions)
