@@ -189,25 +189,6 @@ def main(config, scorerOption, init_db, csvfile, idcol, namecol):
     else:
         return
 
-    eps = metadata.entry_points()['csv_reconcile.scorers']
-    if len(eps) == 0:
-        raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
-    elif scorerOption:
-        for ep in eps:
-            if ep.name == scorerOption:
-                ep.load()
-                break
-        else:
-            raise RuntimeError(
-                "Please install %s \"csv_reconcile.scorers\" plugin" %
-                (scorerOption,))
-    elif len(eps) == 1:
-        ep = next(iter(eps))
-        ep.load()
-    else:
-        # prompt for options and quit
-        pass
-
     app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
     if init_db:
         with app.app_context():
