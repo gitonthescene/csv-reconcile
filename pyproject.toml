@@ -18,7 +18,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-flask = "^1.1.2"
+flask = ">=1.1.2,<3.0.0"
 flask-cors = "^3.0.10"
 cython = "^0.29.21"
 normality = "^2.1.1"
