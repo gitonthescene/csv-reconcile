@@ -22,7 +22,7 @@ flask = "^1.1.2"
 flask-cors = "^3.0.10"
 cython = "^0.29.21"
 normality = "^2.1.1"
-importlib_metadata = { version = "^3.7.3", python = "~3.7" }
+importlib_metadata = { version = ">=3.7.3,<5.0.0", python = "~3.7" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
