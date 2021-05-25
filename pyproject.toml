@@ -25,7 +25,7 @@ normality = "^2.1.1"
 importlib_metadata = { version = "^3.7.3", python = "~3.7" }
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^6.2"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
