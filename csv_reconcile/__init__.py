@@ -17,7 +17,7 @@ try:
 except:
     import importlib_metadata as metadata
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 #------------------------------------------------------------------
 # Implement reconciliation API
 # [[https://reconciliation-api.github.io/specs/latest/]]
@@ -151,7 +151,7 @@ def create_app(setup=None, config=None, instance_path=None):
 
 
 def pickScorer(plugin):
-    eps = metadata.entry_points().select(group='csv_reconcile.scorers')
+    eps = metadata.entry_points()['csv_reconcile.scorers']
     if len(eps) == 0:
         raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
     elif plugin:
