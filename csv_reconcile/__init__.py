@@ -197,4 +197,4 @@ def main(config, scorerOption, init_db, csvfile, idcol, namecol):
 
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
-    app.run()
+    app.run(debug=False)
