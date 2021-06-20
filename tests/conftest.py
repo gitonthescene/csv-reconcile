@@ -10,7 +10,7 @@ except:
 @pytest.fixture
 def plugins():
     '''csv_reconcile.scorers plugins'''
-    eps = metadata.entry_points().select(group='csv_reconcile.scorers')
+    eps = metadata.entry_points()['csv_reconcile.scorers']
     return {ep.name: ep for ep in eps}
 
 
