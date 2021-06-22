@@ -6,3 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    target-branch: "develop"
+    labels:
+      - "pip dependencies"
