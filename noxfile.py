@@ -1,7 +1,7 @@
 from nox_poetry import session, SDIST
 
 
-@session(python=['3.7', '3.8', '3.8'])
+@session(python=['3.7', '3.8', '3.9'])
 def test(session):
     session.poetry.installroot(distribution_format=SDIST)
     session.install('pytest')

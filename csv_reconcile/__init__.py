@@ -13,9 +13,9 @@ import time
 import click
 
 try:
-    from importlib import metadata
-except:
     import importlib_metadata as metadata
+except:
+    from importlib import metadata
 
 __version__ = '0.2.5'
 #------------------------------------------------------------------
@@ -151,7 +151,7 @@ def create_app(setup=None, config=None, instance_path=None):
 
 
 def pickScorer(plugin):
-    eps = metadata.entry_points()['csv_reconcile.scorers']
+    eps = metadata.entry_points().select(group='csv_reconcile.scorers')
     if len(eps) == 0:
         raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
     elif plugin:
