@@ -1,7 +1,9 @@
 # Basic testing taken from [[https://github.com/marketplace/actions/install-poetry-action#mtesting]]
 name: test
 
-on: pull_request
+on:
+  pull_request
+  workflow_dispatch
 
 jobs:
   test:
