@@ -22,7 +22,7 @@ flask = "^2.0"
 flask-cors = "^3.0.10"
 cython = "^0.29.21"
 normality = "^2.1.1"
-importlib_metadata = { version = ">=3.7.3,<5.0.0", python = "~3.7" }
+importlib_metadata = { version = "^4.5.0", python = "<3.10" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
@@ -31,6 +31,7 @@ pytest = "^6.2"
 dummydoc = { script = "utils:dummydoc" }
 pandoc = { cmd = "pandoc README.org --toc -f org -t markdown_strict -s -o README.md" }
 test = "pytest -v"
+nox = "nox"
 build = [
   { ref = "dummydoc" },
   { ref = "test" },
@@ -42,6 +43,7 @@ install = [
 ]
 publish = [
   { ref = "pandoc" },
+  { ref = "nox" },
   { cmd = "poetry publish" }
 ]
 

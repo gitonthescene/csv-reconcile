@@ -2,9 +2,9 @@ import pytest
 from csv_reconcile import create_app, initdb, scorer
 import types
 try:
-    from importlib import metadata
-except:
     import importlib_metadata as metadata
+except:
+    from importlib import metadata
 
 
 @pytest.fixture

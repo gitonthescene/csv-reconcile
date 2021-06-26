@@ -1,0 +1,22 @@
+* Contributing code
+  Pull requests are most definitely appreciated and encouraged.  Please open an issue before
+  contributing and add the comment "Fixes #<issue number>" to your commits to [[https://github.blog/2013-01-22-closing-issues-via-commit-messages/][automatically close
+  the issue.]]
+
+  Also, we've started using the [[https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow][git flow workflow]] for releases.  If you're not familiar with it, it
+  basically amounts to pull requests being accepted only on the ~develop~ branch or preferrably on a
+  branch of ~develop~ named following the pattern ~feature/<short description>~.  The ~git-flow~
+  extension can help with managing these branches but is not required.  See the linked documentation
+  for more information.
+
+* Adding plugins
+  Per the documentation ~csv-reconcile~ automatically detects plugins that are installed as ~Python~
+  packages so long as the register an ~entry-point~ in their ~setup.py~.  Thus no changes to
+  ~csv-reconcile~ should be necessary to make use of your plugin.
+
+  If you would like to share your plugin, however, it might be helpful to add it to this project's
+  wiki.
+
+* Suggestions for enhancement
+  Suggestions are always welcome.  Please open an issue so we can discuss feasibility and how the
+  suggestion fits in with the overall plan for the project.
