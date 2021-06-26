@@ -48,7 +48,7 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poe --no-interaction --no-root
+        run: poe install --no-interaction --no-root
       #----------------------------------------------
       # install your root project, if required 
       #----------------------------------------------      
