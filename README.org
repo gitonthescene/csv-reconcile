@@ -175,6 +175,54 @@
 *** Known plugins
     See [[https://github.com/gitonthescene/csv-reconcile/wiki][wiki]] for list of known plugins.
 
+** Testing
+   Though I long for the old days when a unit test was a unit test, these days things are a bit more
+   complicated with various versions of ~Python~ and installation of plugins to manage.  Now we have
+   to wrestle with [[https://docs.python.org/3/tutorial/venv.html][virtual environments]].  ~poetry~ handles the virtual environment for developing,
+   but testing involves covering more options.
+   
+*** Tests layout
+    The tests directory structure is the following:
+
+    : tests
+    :     main
+    :     plugins
+    :         geo
+
+    Tests for the main package are found under ~main~ and don't require installing any other
+    packages whereas tests under ~plugins~ require the installation of the given plugin.
+    
+*** Running tests
+**** Basic tests
+     These tests are written with [[https://docs.pytest.org/en/6.2.x/contents.html][pytest]] and can be running through ~poetry~ as follows:
+
+     : $ poetry run pytest
+
+     To avoid the complications that come from installing plugins, there is a ~poe~ script for
+     running only the tests under main which can be invoked as follows:
+
+     : $ poe test
+
+     For steady state developing this is probably the command you'll use most often.
+     
+**** Build matrices
+     The GitHub Actions for this project currently use a [[https://docs.github.com/en/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix][build matrix]] across a couple of
+     architectures and several versions of ~Python~, but a similar effect can be achieved using [[https://nox.thea.codes/en/stable/tutorial.html][nox]].
+
+     ~nox~ manages the creation of various virtual environments in what they call "sessions", from
+     which various commands can be run.  This project's ~noxfile.py~ manages the installation of the
+     ~csv-reconcile-geo~ plugin for the plugin tests as well as running across several versions of
+     ~Python~.  See the ~nox~ documentation for detail.
+
+     Some versions of this command you're likely to run are as follows:
+
+     : $ nox      # Run all the tests building virtual environemnts from scratch
+     : $ nox -r   # Reuse previously built virtual environments for speed
+     : $ nox -s test_geo  # Run only the tests for the csv-reconcile-geo plugin
+     : $ nox -s test_main -p 3.8   # Run only the main tests with Python3.8
+
+     Eventually, the GitHub Actions may be changed to use [[https://github.com/marketplace/actions/setup-nox][setup-nox]].
+     
 ** Future enhancements
 
    It would be nice to add support for using [[https://reconciliation-api.github.io/specs/latest/#structure-of-a-reconciliation-query][properties]] as part of the scoring, so that more than
