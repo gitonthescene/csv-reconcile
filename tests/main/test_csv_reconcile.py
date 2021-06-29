@@ -1,4 +1,5 @@
 import pytest
+
 from csv_reconcile import __version__, scorer
 import json
 from urllib.parse import urlencode
@@ -33,10 +34,8 @@ def test_query_basics(basicClient, formContentHeader):
 
     assert query.keys() == matchBatch.keys()
 
-    somekey = next(iter(matchBatch))
-
-    assert 'result' in matchBatch[somekey]
-    assert type(matchBatch[somekey]['result']) == list
+    assert 'result' in matchBatch['q0']
+    assert type(matchBatch['q0']['result']) == list
 
 
 def test_data_extension_basics(basicClient, setup, header, typicalrow,
