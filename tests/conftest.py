@@ -128,4 +128,8 @@ def client(app):
 
 @pytest.fixture
 def basicClient(client, setup, config):
-    return client(setup, config, plugin='dice')
+
+    def getClient(config=config):
+        return client(setup, config, plugin='dice')
+
+    return getClient
