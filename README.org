@@ -60,7 +60,8 @@
 
 ** Usage
 
-   Basic usage requires passing the name of the CSV file, the /id column/ and the /name column/.
+   Basic usage of the ~init~ sub-command requires passing the name of the CSV file, the /id column/
+   and the /name column/.
 
    : $ poetry run csv-reconcile --help
    : Usage: csv-reconcile [OPTIONS] COMMAND [ARGS]...
@@ -90,8 +91,8 @@
 
    The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
    configuration]] and hence is Python code though most configuration is simply setting variables to
-   constant values.  /NOTE:/  When used, the ~--config~ option must be passed to both the ~init~ and
-   ~serve~ commands for consistency.
+   constant values.  /NOTE:/ When used, both ~--config~ and ~--scorer~ options must be passed to
+   both the ~init~ and ~serve~ commands for consistency.
 
 *** Deprecated
     The ~run~ subcommand mimics the old behavior which combined the initialization step with the
