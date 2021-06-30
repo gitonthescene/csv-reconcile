@@ -44,7 +44,7 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
     client = basicClient()
     # Type is ignored in this service
     dummyType = ''
-    idcol, namecol = setup['CSVCOLS']
+    _, idcol, namecol = setup
     ididx = header.index(idcol)
 
     response = client.get('/properties?type=%s' % (dummyType,))
