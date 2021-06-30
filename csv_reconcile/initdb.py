@@ -80,10 +80,8 @@ def init_db(db,
                 db.execute("INSERT INTO data VALUES (%s)" % (datavals), row)
 
 
-def init_db_with_context():
+def init_db_with_context(csvfilenm, idcol, searchcol):
     db = get_db()
-    idcol, searchcol = current_app.config['CSVCOLS']
-    csvfilenm = current_app.config['CSVFILE']
     csvkwargs = current_app.config.get('CSVKWARGS', {})
     scoreOptions = current_app.config['SCOREOPTIONS']
     csvencoding = current_app.config.get('CSVENCODING', None)

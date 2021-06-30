@@ -57,7 +57,7 @@ def setup(tmp_path, csvcontents, idnm):
 
     p = tmp_path / "csvfile"
     p.write_text(csvcontents)
-    return dict(CSVFILE=p, CSVCOLS=idnm)
+    return (p, *idnm)
 
 
 @pytest.fixture
@@ -107,9 +107,9 @@ def app(plugins, tmp_path):
     def getApp(setup, config, plugin='dice'):
         # Apply the dice plugin
         plugins[plugin].load()
-        app = create_app(setup, config, instance_path=tmp_path / "instance")
+        app = create_app(config, instance_path=tmp_path / "instance")
         with app.app_context():
-            initdb.init_db_with_context()
+            initdb.init_db_with_context(*setup)
 
         return app
 

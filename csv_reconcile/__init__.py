@@ -11,6 +11,7 @@ import os.path
 from contextlib import contextmanager
 import time
 import click
+import sys
 
 try:
     import importlib_metadata as metadata
@@ -48,7 +49,7 @@ MANIFEST = {
 }
 
 
-def create_app(setup=None, config=None, instance_path=None):
+def create_app(config=None, instance_path=None):
     app = Flask("csv-reconcile", instance_path=instance_path)
     # Could make dbname configurable
     # possibly better to roll THRESHOLD and LIMIT into one config called LIMITS
@@ -56,7 +57,6 @@ def create_app(setup=None, config=None, instance_path=None):
     if config:
         app.config.from_pyfile(config)
 
-    app.config.from_mapping(**setup)
     scoreOptions = app.config['SCOREOPTIONS']
     scorer.processScoreOptions(scoreOptions)
 
@@ -152,49 +152,111 @@ def create_app(setup=None, config=None, instance_path=None):
 
 def pickScorer(plugin):
     eps = metadata.entry_points().select(group='csv_reconcile.scorers')
+    entrypoint = None
     if len(eps) == 0:
         raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
     elif plugin:
         for ep in eps:
             if ep.name == plugin:
-                return ep
+                entrypoint = ep
         else:
             raise RuntimeError(
                 "Please install %s \"csv_reconcile.scorers\" plugin" %
                 (plugin,))
     elif len(eps) == 1:
-        return next(iter(eps))
+        entrypoint = next(iter(eps))
 
-    # print out options
-    print(
-        "There are several scorers available.  Please choose one of the following with the --scorer option."
-    )
-    for ep in eps:
-        print("  %s" % (ep.name,))
+    if entrypoint is None:
+        # print out options
+        print(
+            "There are several scorers available.  Please choose one of the following with the --scorer option."
+        )
+        for ep in eps:
+            print("  %s" % (ep.name,))
+        return None
 
-    return None
+    entrypoint.load()
+    return entrypoint
 
 
-@click.command()
+@click.group()
+def cli():
+    pass
+
+
+def doinit(config, scorerOption, csvfile, idcol, namecol):
+
+    if pickScorer(scorerOption) is None:
+        return
+
+    app = create_app(config)
+    with app.app_context():
+        initdb.init_db_with_context(csvfile, idcol, namecol)
+        click.echo('Initialized the database.')
+    return app
+
+
+@cli.command()
+@click.option('--config', help='config file')
+@click.option('--scorer', 'scorerOption', help='scoring plugin to use')
+@click.argument('csvfile')
+@click.argument('idcol')
+@click.argument('namecol')
+def init(config, scorerOption, csvfile, idcol, namecol):
+    return doinit(config, scorerOption, csvfile, idcol, namecol)
+
+
+@cli.command()
 @click.option('--config', help='config file')
 @click.option('--scorer', 'scorerOption', help='scoring plugin to use')
 @click.option('--init-db', is_flag=True, help='initialize the db')
 @click.argument('csvfile')
 @click.argument('idcol')
 @click.argument('namecol')
-def main(config, scorerOption, init_db, csvfile, idcol, namecol):
-    ep = pickScorer(scorerOption)
-    if ep:
-        ep.load()
-    else:
+def run(config, scorerOption, init_db, csvfile, idcol, namecol):
+    print('''
+#########################################################
+##         WARNING: The interface is deprecated        ##
+#########################################################
+
+Please run init once to initialize the database and serve to run the server.
+See --help for details.
+''')
+    if pickScorer(scorerOption) is None:
         return
 
-    app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
+    app = None
     if init_db:
-        with app.app_context():
-            initdb.init_db_with_context()
-            click.echo('Initialized the database.')
+        app = doinit(config, scorerOption, csvfile, idcol, namecol)
 
+    app = app or create_app(config)
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     app.run(debug=False)
+
+
+@cli.command()
+@click.option('--config', help='config file')
+@click.option('--scorer', 'scorerOption', help='scoring plugin to use')
+def serve(config, scorerOption):
+    if pickScorer(scorerOption) is None:
+        return
+
+    app = create_app(config)
+    from werkzeug.serving import WSGIRequestHandler
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
+    app.run(debug=False)
+
+
+def main():
+    nonopts = [a for a in sys.argv if not a.startswith('--')]
+
+    if len(nonopts) > 1 and nonopts[1] not in 'run init serve':
+        print('''
+#########################################################
+##     WARNING: The interface has changed slightly.    ##
+#########################################################
+Please use one of the subcommands. See --help for details.
+
+''')
+    return cli()
