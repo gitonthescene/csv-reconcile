@@ -5,13 +5,12 @@
 ** Quick start
    - Clone this repository
    - Run the service
-     #+begin_src sh
-     $ python -m venv venv                                             # create virtualenv
-     $ venv/bin/pip install csv-reconcile                              # install package
-     $ source venv/bin/activate                                        # activate virtual environment
-     (venv) $ csv-reconcile --init-db sample/reps.tsv item itemLabel   # start the service
-     (venv) $ deactivate                                               # remove virtual environment
-     #+end_src
+     : $ python -m venv venv                                             # create virtualenv
+     : $ venv/bin/pip install csv-reconcile                              # install package
+     : $ source venv/bin/activate                                        # activate virtual environment
+     : (venv) $ csv-reconcile init sample/reps.tsv item itemLabel        # initialize the service
+     : (venv) $ csv-reconcile serve                                      # run the service
+     : (venv) $ deactivate                                               # remove virtual environment
 
    The service is run at http://127.0.0.1:5000/reconcile.  You can point at a different host:port by
    adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.  Since this is running from a virtualenv, you can simply
@@ -27,19 +26,16 @@
 
 *** Running
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
-   #+begin_src sh
-   $ poe install
-   $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
-   #+end_src
+   : $ poe install
+   : $ poetry run csv-reconcile init sample/reps.tsv item itemLabel
+   : $ poetry run csv-reconcile serve
 
 *** Building
     Because this package uses a ~README.org~ file and ~pip~ requires a ~README.md~, there are extra
     build steps beyond what ~poetry~ supplies.  These are managed using [[https://pypi.org/project/poethepoet/0.0.3/][poethepoet]].  Thus building is
     done as follows:
 
-    #+begin_src sh
-    $ poe build
-    #+end_src
+    : $ poe build
 
     If you want to build a platform agnostic wheel, you'll have to comment out the ~build =
     "build.py"~ line from ~pyproject.toml~ until ~poetry~ supports [[https://github.com/python-poetry/poetry/issues/3594][selecting build platform]].
@@ -50,9 +46,9 @@
    in a [[https://en.wikipedia.org/wiki/Comma-separated_values][CSV]] file.  The CSV file must contain a column containing distinct values to reconcile to.
    We'll call this the /id column/.  We'll call the column being reconciled against the /name column/.
 
-   For performance reasons, the /name column/ is preprocessed to normalized values which are stored in
-   an [[https://www.sqlite.org/index.html][sqlite]] database.  This database must be initialized at least once by passing the ~--init-db~ on
-   the command line.  Once initialized this option can be removed from subsequent runs.
+   For performance reasons, the /name column/ is preprocessed to normalized values which are stored
+   in an [[https://www.sqlite.org/index.html][sqlite]] database.  This database must be initialized at least once by running the init
+   sub-command.  Once initialized this need not be run for subsequent runs.
 
    Note that the service supplies all its data with a dummy /type/ so there is no reason to reconcile
    against any particular /type/.
@@ -66,21 +62,40 @@
 
    Basic usage requires passing the name of the CSV file, the /id column/ and the /name column/.
 
-   #+begin_src sh
-   $ poetry run csv-reconcile --help
-   Usage: csv-reconcile [OPTIONS] CSVFILE IDCOL NAMECOL
+   : $ poetry run csv-reconcile --help
+   : Usage: csv-reconcile [OPTIONS] COMMAND [ARGS]...
+   : 
+   : Options:
+   :   --help  Show this message and exit.
+   : 
+   : Commands:
+   :   init
+   :   run
+   :   serve
+   : $ poetry run csv-reconcile init --help
+   : Usage: csv-reconcile init [OPTIONS] CSVFILE IDCOL NAMECOL
+   : 
+   : Options:
+   :   --config TEXT  config file
+   :   --scorer TEXT  scoring plugin to use
+   :   --help         Show this message and exit.
+   : $ poetry run csv-reconcile serve --help
+   : Usage: csv-reconcile serve [OPTIONS]
+   : 
+   : Options:
+   :   --config TEXT  config file
+   :   --scorer TEXT  scoring plugin to use
+   :   --help         Show this message and exit.
+   : $
 
-   Options:
-     --config TEXT  config file
-     --scorer TEXT  scoring plugin to use
-     --init-db      initialize the db
-     --help         Show this message and exit.
-   $
-   #+end_src
+   The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
+   configuration]] and hence is Python code though most configuration is simply setting variables to
+   constant values.  /NOTE:/  When used, the ~--config~ option must be passed to both the ~init~ and
+   ~serve~ commands for consistency.
 
-   In addition to the ~--init-db~ switch mentioned above you may use the ~--config~ option to point to
-   a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask configuration]] and hence is Python code though most
-   configuration is simply setting variables to constant values.
+*** Deprecated
+    The ~run~ subcommand mimics the old behavior which combined the initialization step with the
+    running of the service.  This may be removed in a future release.
 
 ** Common configuration
    - ~SERVER_NAME~  - The host and port the service is bound to.
@@ -160,10 +175,8 @@
     The default Dice coefficent scoring is supplied via the following snippet from ~pyproject.toml~
     file.
 
-    #+begin_src
-    [tool.poetry.plugins."csv_reconcile.scorers"]
-    "dice" = "csv_reconcile_dice"
-    #+end_src
+    : [tool.poetry.plugins."csv_reconcile.scorers"]
+    : "dice" = "csv_reconcile_dice"
 
     Here ~dice~ becomes the name of the scoring option and ~csv_reconcile_dice~ is the package
     implementing the plugin.
