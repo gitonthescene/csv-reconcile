@@ -4,5 +4,6 @@ DROP TABLE IF EXISTS datacols;
 
 CREATE TABLE datacols (
   name TEXT PRIMARY KEY,
-  colname TEXT NOT NULL
+  colname TEXT NOT NULL,
+  isid INT NOT NULL
 );

@@ -16,7 +16,8 @@ def initDataTable(db, colnames, idcol):
         else:
             cols.append('%s TEXT NOT NULL' % (slug,))
 
-        db.execute('INSERT INTO datacols VALUES (?,?)', (col, slug))
+        db.execute('INSERT INTO datacols VALUES (?,?,?)',
+                   (col, slug, 1 if col == idcol else 0))
 
     # create data table with the contents of the csv file
     createSQL = 'CREATE TABLE data (\n  %s\n)'
