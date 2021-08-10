@@ -91,6 +91,29 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
             assert choice['str'] == typicalrow[exidx]
 
 
+def test_preview_service(basicClient, setup, header, typicalrow):
+    client = basicClient()
+
+    # no id
+    response = client.get(f"/preview/")
+    assert response.status_code == 404
+
+    # unavailable id
+    response = client.get(f"/preview/unavailable")
+    assert response.status_code == 404
+
+    # available id
+    id_idx = header.index(setup[1])
+    response = client.get(f"/preview/{typicalrow[id_idx]}")
+    assert response.status_code == 200
+
+    html_response = response.data.decode("utf-8")
+    print(html_response)
+    assert f"<title>Preview for {typicalrow[id_idx]}</title>" in html_response
+    for key, value in zip(header, typicalrow):
+        assert f"<dt>{key}</dt><dd>{value}</dd>" in html_response
+
+
 @pytest.fixture
 def limitConfig(mkConfig):
     contents = '''
