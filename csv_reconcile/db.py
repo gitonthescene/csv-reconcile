@@ -1,12 +1,28 @@
-import sqlite3
 import os.path
-from flask import current_app, g
+import sqlite3
 
+from flask import current_app, g
 from normality import slugify
 
 
 def normalizeDBcol(col):
     return slugify(col).replace('-', '_')
+
+
+def getCSVCols():
+    cur = get_db().cursor()
+    cur.execute("SELECT * FROM datacols")
+    return [(row['colname'], row['name']) for row in cur]
+
+
+def getIDCol():
+    cur = get_db().cursor()
+
+    cur.execute("SELECT colname FROM datacols WHERE isid == 1")
+    res = cur.fetchall()
+    if len(res) != 1:
+        raise RuntimeError("database not properly initialized")
+    return res[0]['colname']
 
 
 def get_db():

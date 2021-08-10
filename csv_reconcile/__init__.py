@@ -1,17 +1,19 @@
-from flask import Flask, request, jsonify
-from flask_cors import cross_origin
-from .score import processQueryBatch
-from .extend import getCSVCols, processDataExtensionBatch
-from .db import get_db
-from . import initdb
-from . import default_settings
-from . import scorer
 import json
 import os.path
-from contextlib import contextmanager
-import time
-import click
 import sys
+import time
+from contextlib import contextmanager
+
+import click
+from flask import abort, Flask, jsonify, request
+from flask_cors import cross_origin
+from markupsafe import escape
+
+from . import default_settings, initdb, scorer
+from .db import get_db, getCSVCols
+from .extend import processDataExtensionBatch
+from .preview import getEntity
+from .score import processQueryBatch
 
 try:
     import importlib_metadata as metadata
@@ -45,6 +47,11 @@ MANIFEST = {
             "service_url": "http://localhost:5000",
             "service_path": "/properties"
         }
+    },
+    "preview": {
+       "url": "http://localhost:5000/preview/{{id}}",
+       "width": 400,
+       "height": 300
     }
 }
 
@@ -146,6 +153,36 @@ def create_app(config=None, instance_path=None):
             return jsonpify(ret)
 
         # unprocessible request
+
+    @app.route('/preview/<entity_id>')
+    @cross_origin()
+    def preview_service(entity_id=None):
+        if not entity_id:
+            abort(404)
+        entity = getEntity(entity_id)
+        if not entity:
+            abort(404)
+        entity_html = "".join([f"<dt>{escape(key)}</dt><dd>{escape(val)}</dd>"
+                               for key, val in entity.items()])
+        return f"""<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Preview for {escape(entity_id)}</title>
+        <style type='text/css'>
+          h1 {{font-size: 115%; }}
+          dl {{display: flex; flex-flow: row wrap;}}
+          dt {{flex-basis: 20%; padding: 2px 4px;
+               text-align: right; font-weight: bold;}}
+          dt::after {{content: ':';}}
+          dd {{flex-basis: 70%; flex-grow: 1;
+               margin: 0; padding: 2px 4px;}}
+        </style>
+    </head>
+    <body>
+        <dl>{entity_html}</dl>
+    </body>
+</html>"""
 
     return app
 
