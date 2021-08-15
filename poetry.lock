@@ -154,7 +154,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "normality"
-version = "2.2.2"
+version = "2.2.3"
 description = "Micro-library to normalize text strings"
 category = "main"
 optional = false
@@ -166,7 +166,7 @@ chardet = "*"
 text-unidecode = "*"
 
 [package.extras]
-dev = ["pyicu (>=1.9.3)", "mypy", "pytest"]
+dev = ["pyicu (>=1.9.3)", "mypy", "pytest", "types-chardet"]
 icu = ["pyicu (>=1.9.3)"]
 
 [[package]]
@@ -439,8 +439,8 @@ markupsafe = [
     {file = "MarkupSafe-2.0.1.tar.gz", hash = "sha256:594c67807fb16238b30c44bdf74f36c02cdf22d1c8cda91ef8a0ed8dabf5620a"},
 ]
 normality = [
-    {file = "normality-2.2.2-py2.py3-none-any.whl", hash = "sha256:17c06fb63aa5f892eaca7fc25b93e91008b61ff64bb6ad7bd6320368f4f3fafa"},
-    {file = "normality-2.2.2.tar.gz", hash = "sha256:513d1a394507cc0b132f14c08349d58f9ed24f583aeb1b26a93066a8230906de"},
+    {file = "normality-2.2.3-py2.py3-none-any.whl", hash = "sha256:645843f7630a4ccd4d4a50b89d8ba41a83aa9e386c1f615877e96202bb29ea13"},
+    {file = "normality-2.2.3.tar.gz", hash = "sha256:cb7ff88348f090b8f5517baeda3d7cced94cebf6ae3e6756689a73d18b1bc041"},
 ]
 packaging = [
     {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},
