@@ -63,7 +63,7 @@ jobs:
       #       install plugins (for tests)
       #----------------------------------------------
       - name: Install plugins
-        run: python -m pip install csv-reconcile-geo
+        run: poetry run python -m pip install csv-reconcile-geo
       #----------------------------------------------
       #    add matrix specifics and run test suite   
       #----------------------------------------------
