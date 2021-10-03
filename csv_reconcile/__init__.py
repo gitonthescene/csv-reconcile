@@ -47,11 +47,6 @@ MANIFEST = {
             "service_url": "http://localhost:5000",
             "service_path": "/properties"
         }
-    },
-    "preview": {
-       "url": "http://localhost:5000/preview/{{id}}",
-       "width": 400,
-       "height": 300
     }
 }
 

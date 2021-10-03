@@ -119,7 +119,7 @@
    This last is most interesting.  If your data is coming from [[https://www.wikidata.org][Wikidata]] and your /id column/
    contains [[https://www.wikidata.org/wiki/Help:Items][Q values]], then a manifest like the following will allow your links to be clickable inside OpenRefine.
 
-   #+begin_src json
+   #+begin_src python
    MANIFEST = {
      "identifierSpace": "http://www.wikidata.org/entity/",
      "schemaSpace": "http://www.wikidata.org/prop/direct/",
@@ -131,6 +131,25 @@
    If your CSV is made up of data taken from another [[https://reconciliation-api.github.io/testbench/][reconciliation service]], you may similiarly copy
    parts of their manifest to make use of their features, such as the [[https://reconciliation-api.github.io/specs/latest/#preview-service][preview service]].  See the
    reconciliation spec for details.
+
+** Built-in preview service
+   There is a preview service built into the tool.  (Thanks [[https://github.com/b2m][b2m]]!)  You can turn it on by adding the
+   following to your manifest:
+
+   #+begin_src python
+     "preview": {
+        "url": "http://localhost:5000/preview/{{id}}",
+        "width": 400,
+        "height": 300
+     }
+   #+end_src
+
+   Note that if you reconcile against a service with a preview service enabled, a link to the
+   service becomes part of the project.  Thus if you bring the service down, your project will have
+   hover over pop-ups to an unavailable service.  One way around this is to copy the
+   ~recon.match.id~ to a new column which can be re-reconciled to the column by id if you bring the
+   service back up again whether or not you have preview service enabled.  (Perhaps OpenRefine could
+   be smarter about enabling this pop-ups only when the service is active.)
 
 ** Scoring plugins
    As mentioned above the default scoring method is to use [[https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient][Dice coefficient scoring]], but this method
