@@ -84,15 +84,12 @@
    : Usage: csv-reconcile serve [OPTIONS]
    : 
    : Options:
-   :   --config TEXT  config file
-   :   --scorer TEXT  scoring plugin to use
    :   --help         Show this message and exit.
    : $
 
    The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
    configuration]] and hence is Python code though most configuration is simply setting variables to
-   constant values.  /NOTE:/ When used, both ~--config~ and ~--scorer~ options must be passed to
-   both the ~init~ and ~serve~ commands for consistency.
+   constant values.
 
 *** Deprecated
     The ~run~ subcommand mimics the old behavior which combined the initialization step with the

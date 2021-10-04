@@ -1,7 +1,9 @@
 import json
 import os.path
+from pathlib import Path
 import sys
 import time
+import shutil
 from contextlib import contextmanager
 
 import click
@@ -51,13 +53,48 @@ MANIFEST = {
 }
 
 
-def create_app(config=None, instance_path=None):
+def create_app(config=None, instance_path=None, scorerOption=None):
     app = Flask("csv-reconcile", instance_path=instance_path)
-    # Could make dbname configurable
+
+    instance_path = Path(app.instance_path)
+
+    try:
+        os.makedirs(instance_path)
+    except OSError:
+        pass
+
+    scorerfile = instance_path / 'scorer.txt'
+
+    # clean up old files if they exist
+    # "" indicates called from doinit()
+    if scorerOption == "" and scorerfile.is_file():
+        scorerfile.unlink()
+    elif scorerOption:
+        with open(scorerfile, 'w') as f:
+            f.write(scorerOption)
+
+    scorerOption = None
+    if scorerfile.is_file():
+        with open(scorerfile) as f:
+            scorerOption = f.read()
+
+    if pickScorer(scorerOption) is None:
+        return None
+
     # possibly better to roll THRESHOLD and LIMIT into one config called LIMITS
     app.config.from_object(default_settings)
-    if config:
-        app.config.from_pyfile(config)
+
+    cfgfile = instance_path / "reconcile.config"
+
+    # clean up old configs if they exist
+    # "" indicates called from doinit()
+    if config == "" and cfgfile.is_file():
+        cfgfile.unlink()
+    elif config:
+        shutil.copyfile( config, cfgfile )
+
+    if cfgfile.is_file():
+        app.config.from_pyfile(cfgfile)
 
     scoreOptions = app.config['SCOREOPTIONS']
     scorer.processScoreOptions(scoreOptions)
@@ -68,11 +105,6 @@ def create_app(config=None, instance_path=None):
     loglevel = app.config['LOGLEVEL']
     if loglevel:
         app.logger.setLevel(loglevel)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
 
     @app.before_request
     def before():
@@ -191,6 +223,7 @@ def pickScorer(plugin):
         for ep in eps:
             if ep.name == plugin:
                 entrypoint = ep
+                break
         else:
             raise RuntimeError(
                 "Please install %s \"csv_reconcile.scorers\" plugin" %
@@ -218,10 +251,10 @@ def cli():
 
 def doinit(config, scorerOption, csvfile, idcol, namecol):
 
-    if pickScorer(scorerOption) is None:
+    app = create_app(config or "", scorerOption=scorerOption or "")
+    if app is None:
         return
 
-    app = create_app(config)
     with app.app_context():
         initdb.init_db_with_context(csvfile, idcol, namecol)
         click.echo('Initialized the database.')
@@ -236,7 +269,6 @@ def doinit(config, scorerOption, csvfile, idcol, namecol):
 @click.argument('namecol')
 def init(config, scorerOption, csvfile, idcol, namecol):
     return doinit(config, scorerOption, csvfile, idcol, namecol)
-
 
 @cli.command()
 @click.option('--config', help='config file')
@@ -254,8 +286,6 @@ def run(config, scorerOption, init_db, csvfile, idcol, namecol):
 Please run init once to initialize the database and serve to run the server.
 See --help for details.
 ''')
-    if pickScorer(scorerOption) is None:
-        return
 
     app = None
     if init_db:
@@ -268,13 +298,10 @@ See --help for details.
 
 
 @cli.command()
-@click.option('--config', help='config file')
-@click.option('--scorer', 'scorerOption', help='scoring plugin to use')
-def serve(config, scorerOption):
-    if pickScorer(scorerOption) is None:
-        return
+def serve():
 
-    app = create_app(config)
+    # Config should have been copied during the init phase
+    app = create_app(None)
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     app.run(debug=False)

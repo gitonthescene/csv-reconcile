@@ -105,9 +105,7 @@ def app(plugins, tmp_path):
     '''flask app'''
 
     def getApp(setup, config, plugin='dice'):
-        # Apply the dice plugin
-        plugins[plugin].load()
-        app = create_app(config, instance_path=tmp_path / "instance")
+        app = create_app(config, instance_path=tmp_path / "instance", scorerOption=plugin)
         with app.app_context():
             initdb.init_db_with_context(*setup)
 
