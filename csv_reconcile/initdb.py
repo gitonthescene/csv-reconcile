@@ -1,5 +1,8 @@
 from flask import current_app
 import csv
+from collections import defaultdict
+from itertools import count
+
 from .db import get_db, normalizeDBcol
 
 from importlib.resources import read_text
@@ -9,8 +12,10 @@ from . import scorer
 
 def initDataTable(db, colnames, idcol):
     cols = []
+    cnts = defaultdict(count)
     for col in colnames:
         slug = normalizeDBcol(col)
+        slug = f'{slug}{next(cnts[slug])}'
         if col == idcol:
             cols.append('%s TEXT PRIMARY KEY' % (slug,))
         else:
