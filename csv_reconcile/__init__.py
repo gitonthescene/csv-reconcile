@@ -176,7 +176,7 @@ def create_app(config=None, instance_path=None, scorerOption=None):
             ret = dict(properties=[{
                 'id': colname,
                 'name': name
-            } for name, colname in cols])
+            } for colname, name in cols])
             return jsonpify(ret)
 
         # unprocessible request
