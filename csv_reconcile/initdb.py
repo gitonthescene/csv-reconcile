@@ -69,6 +69,7 @@ def init_db(db,
             datavals = ','.join('?' * len(header))
 
             for row in reader:
+                if len(row) != len(header): continue
                 mid = row[ididx]
                 word = row[searchidx]
                 matchFields = scorer.normalizeRow(word, row, **scoreOptions)
