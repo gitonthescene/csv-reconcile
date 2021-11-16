@@ -301,7 +301,7 @@ See --help for details.
 def serve():
 
     # Config should have been copied during the init phase
-    app = create_app(None)
+    app = create_app()
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     app.run(debug=False)
