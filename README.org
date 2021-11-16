@@ -72,7 +72,7 @@
    Basic usage of the ~init~ sub-command requires passing the name of the CSV file, the /id column/
    and the /name column/.
 
-   : $ poetry run csv-reconcile --help
+   : (venv) $ csv-reconcile --help
    : Usage: csv-reconcile [OPTIONS] COMMAND [ARGS]...
    : 
    : Options:
@@ -82,19 +82,19 @@
    :   init
    :   run
    :   serve
-   : $ poetry run csv-reconcile init --help
+   : (venv) $ csv-reconcile init --help
    : Usage: csv-reconcile init [OPTIONS] CSVFILE IDCOL NAMECOL
    : 
    : Options:
    :   --config TEXT  config file
    :   --scorer TEXT  scoring plugin to use
    :   --help         Show this message and exit.
-   : $ poetry run csv-reconcile serve --help
+   : (venv) $ poetry run csv-reconcile serve --help
    : Usage: csv-reconcile serve [OPTIONS]
    : 
    : Options:
    :   --help         Show this message and exit.
-   : $
+   : (venv) $
 
    The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
    configuration]] and hence is Python code though most configuration is simply setting variables to
@@ -108,7 +108,7 @@
     For a more hardened service, you can use one of the other deployment options mentioned in that
     documentation.  For example, gunicorn can be run as follows:
 
-    : $ gunicorn -w 4 'csv_reconcile:create_app()'
+    : (venv) $ gunicorn -w 4 'csv_reconcile:create_app()'
     : 1-11-16 17:40:20 +0900] [84625] [INFO] Starting gunicorn 20.1.0
     : 1-11-16 17:40:20 +0900] [84625] [INFO] Listening at: http://127.0.0.1:8000 (84625)
     : 1-11-16 17:40:20 +0900] [84625] [INFO] Using worker: sync
