@@ -1,9 +1,10 @@
-from .db import get_db, getIDCol, normalizeDBcol
+from .db import get_db, getIDCol, getCSVCols
 
 
 def processDataExtensionBatch(batch):
     ids, props = tuple(batch[x] for x in ('ids', 'properties'))
-    cols = {normalizeDBcol(p['id']): p['id'] for p in props}
+    names = {p['id'] for p in props}
+    cols = {colnm: nm for colnm, nm in getCSVCols() if nm in names}
     idcol = getIDCol()
 
     db = get_db()
