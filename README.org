@@ -60,6 +60,15 @@
 
 ** Usage
 
+   Basic usage involves two steps:
+     - initialization
+     - running the service
+
+   Initialization primes the database with the data processed from the CSV file with the ~init~ subcommand.
+   There are several options for running the service as described below.
+
+*** Initialization
+
    Basic usage of the ~init~ sub-command requires passing the name of the CSV file, the /id column/
    and the /name column/.
 
@@ -90,6 +99,42 @@
    The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
    configuration]] and hence is Python code though most configuration is simply setting variables to
    constant values.
+
+*** Running the service
+    The simplest way to run the service is to use Flask's built-in web server with the ~serve~
+    subcommand which takes no arguments.  However, as mentioned in the [[https://flask.palletsprojects.com/en/2.0.x/deploying/][Flask documentation]], this
+    server is not suitable for production purposes.
+
+    For a more hardened service, you can use one of the other deployment options mentioned in that
+    documentation.  For example, gunicorn can be run as follows:
+
+    : $ gunicorn -w 4 'csv_reconcile:create_app()'
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Starting gunicorn 20.1.0
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Listening at: http://127.0.0.1:8000 (84625)
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Using worker: sync
+    : 1-11-16 17:40:20 +0900] [84626] [INFO] Booting worker with pid: 84626
+    : 1-11-16 17:40:20 +0900] [84627] [INFO] Booting worker with pid: 84627
+    : 1-11-16 17:40:20 +0900] [84628] [INFO] Booting worker with pid: 84628
+    : 1-11-16 17:40:20 +0900] [84629] [INFO] Booting worker with pid: 84629
+    : ...
+
+    One thing to watch out for is that the default manifest points the extension service to port
+    5000, the default port for the Flask built-in web server.  If you want to use the extension
+    service when deploying to a different port, you'll want to be sure to override that part of the
+    manifest in your config file.  You'll need something like the following:
+
+    : MANIFEST = {
+    :     "extend": {
+    :         "propose_properties": {
+    :             "service_url": "http://localhost:8000",
+    :             "service_path": "/properties"
+    :         }
+    :     }
+    : }
+
+    Note also that the configuration is saved during the ~init~ step.  If you change the config,
+    you'll need to re-run that step.  You may also need to delete and re-add the service in
+    OpenRefine.
 
 *** Deprecated
     The ~run~ subcommand mimics the old behavior which combined the initialization step with the
