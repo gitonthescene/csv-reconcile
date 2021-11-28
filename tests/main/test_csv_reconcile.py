@@ -1,15 +1,16 @@
 import pytest
+
 from csv_reconcile import __version__, scorer
 import json
 from urllib.parse import urlencode
 
 
 def test_version():
-    assert __version__ == '0.2.5'
+    assert __version__ == '0.3.0'
 
 
 def test_manifest(basicClient):
-    response = basicClient.get('/reconcile')
+    response = basicClient().get('/reconcile')
 
     assert response.status_code == 200
 
@@ -23,9 +24,9 @@ def test_manifest(basicClient):
 def test_query_basics(basicClient, formContentHeader):
     query = {'q0': {'query': 'first'}}
     queryjson = json.dumps(query)
-    response = basicClient.post('/reconcile',
-                                data=urlencode([('queries', queryjson)]),
-                                headers=formContentHeader)
+    response = basicClient().post('/reconcile',
+                                  data=urlencode([('queries', queryjson)]),
+                                  headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -33,21 +34,20 @@ def test_query_basics(basicClient, formContentHeader):
 
     assert query.keys() == matchBatch.keys()
 
-    somekey = next(iter(matchBatch))
-
-    assert 'result' in matchBatch[somekey]
-    assert type(matchBatch[somekey]['result']) == list
+    assert 'result' in matchBatch['q0']
+    assert type(matchBatch['q0']['result']) == list
 
 
 def test_data_extension_basics(basicClient, setup, header, typicalrow,
                                formContentHeader):
 
+    client = basicClient()
     # Type is ignored in this service
     dummyType = ''
-    idcol, namecol = setup['CSVCOLS']
+    _, idcol, namecol = setup
     ididx = header.index(idcol)
 
-    response = basicClient.get('/properties?type=%s' % (dummyType,))
+    response = client.get('/properties?type=%s' % (dummyType,))
 
     assert response.status_code == 200
 
@@ -56,21 +56,20 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
     assert 'properties' in cols
     assert type(cols['properties']) == list  # [ {id:..., name:...}, ... ]
 
-    # Every thing but id and name col available for extension
-    availableCols = []
+    availableCols = dict()
     for itm in cols['properties']:
         assert set(itm.keys()) == set(('id', 'name'))
 
-        availableCols.append(itm['id'])
+        availableCols[itm['name']] = itm['id']
 
     assert set(availableCols) == set(header)
 
     colid = typicalrow[ididx]
     req = {'ids': [colid], 'properties': cols['properties']}
     reqjson = json.dumps(req)
-    response = basicClient.post('/reconcile',
-                                data=urlencode([('extend', reqjson)]),
-                                headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('extend', reqjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -81,50 +80,73 @@ def test_data_extension_basics(basicClient, setup, header, typicalrow,
     assert colid in extenddata['rows']
 
     row = extenddata['rows'][colid]
-    for colextra in availableCols:
+    for colextra, colid in availableCols.items():
         exidx = header.index(colextra)
 
-        assert colextra in row
+        assert colid in row
 
-        for choice in row[colextra]:
+        for choice in row[colid]:
             assert 'str' in choice
             assert choice['str'] == typicalrow[exidx]
 
 
+def test_preview_service(basicClient, setup, header, typicalrow):
+    client = basicClient()
+
+    # no id
+    response = client.get(f"/preview/")
+    assert response.status_code == 404
+
+    # unavailable id
+    response = client.get(f"/preview/unavailable")
+    assert response.status_code == 404
+
+    # available id
+    id_idx = header.index(setup[1])
+    response = client.get(f"/preview/{typicalrow[id_idx]}")
+    assert response.status_code == 200
+
+    html_response = response.data.decode("utf-8")
+    print(html_response)
+    assert f"<title>Preview for {typicalrow[id_idx]}</title>" in html_response
+    for key, value in zip(header, typicalrow):
+        assert f"<dt>{key}</dt><dd>{value}</dd>" in html_response
+
+
 @pytest.fixture
-def lclient(client, setup, tmp_path):
-    filecontents = '''
+def limitConfig(mkConfig):
+    contents = '''
 LIMIT=2
 THRESHOLD=-1.0
 import logging
-LOGLEVEL=logging.DEBUG'''
-    p = tmp_path / "config"
-    p.write_text(filecontents)
-    return client(setup, p)
+LOGLEVEL=logging.DEBUG
+'''
+    return mkConfig(contents)
 
 
-def test_reconcile_limit(lclient, formContentHeader):
+def test_reconcile_limit(basicClient, formContentHeader, limitConfig):
     query = {'q0': {'query': 'first'}}
     queryjson = json.dumps(query)
-    response = lclient.post('/reconcile',
-                            data=urlencode([('queries', queryjson)]),
-                            headers=formContentHeader)
+    client = basicClient(limitConfig)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
     matchBatch = json.loads(response.data)
 
     assert len(matchBatch['q0']['result']) == 2
-    response = lclient.post('/reconcile',
-                            data=urlencode([('queries', queryjson)]),
-                            headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     # Override config limit in query with larger number
     query = {'q0': {'query': 'first', 'limit': 3}}
     queryjson = json.dumps(query)
-    response = lclient.post('/reconcile',
-                            data=urlencode([('queries', queryjson)]),
-                            headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -136,9 +158,9 @@ def test_reconcile_limit(lclient, formContentHeader):
     # Override config limit in query with smaller number
     query = {'q0': {'query': 'first', 'limit': 1}}
     queryjson = json.dumps(query)
-    response = lclient.post('/reconcile',
-                            data=urlencode([('queries', queryjson)]),
-                            headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -149,11 +171,13 @@ def test_reconcile_limit(lclient, formContentHeader):
 
 
 def test_reconcile_automatch(basicClient, formContentHeader):
+    client = basicClient()
+
     query = {'q0': {'query': 'first'}}
     queryjson = json.dumps(query)
-    response = basicClient.post('/reconcile',
-                                data=urlencode([('queries', queryjson)]),
-                                headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -175,9 +199,9 @@ def test_reconcile_automatch(basicClient, formContentHeader):
     # None with 100% match does not automatch
     query = {'q0': {'query': 'fir'}}
     queryjson = json.dumps(query)
-    response = basicClient.post('/reconcile',
-                                data=urlencode([('queries', queryjson)]),
-                                headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -190,9 +214,9 @@ def test_reconcile_automatch(basicClient, formContentHeader):
     # Only one result automatches, even if not 100%
     query = {'q0': {'query': 'fir', 'limit': 1}}
     queryjson = json.dumps(query)
-    response = basicClient.post('/reconcile',
-                                data=urlencode([('queries', queryjson)]),
-                                headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
 
     assert response.status_code == 200
 
@@ -202,8 +226,7 @@ def test_reconcile_automatch(basicClient, formContentHeader):
     assert result[0]['score'] != 100.0 and result[0]['match'] == True
 
 
-def test_plugin(mockPlugin, client, setup, config, csvcontents,
-                formContentHeader):
+def test_plugin(mockPlugin, basicClient, csvcontents, formContentHeader):
     # Since used in closure pass in "by reference"
     p, gn, nw, sm, v = list(range(5))
     called = [0] * 5
@@ -236,7 +259,7 @@ def test_plugin(mockPlugin, client, setup, config, csvcontents,
         called[v] += 1
         return True
 
-    theClient = client(setup, config)
+    client = basicClient()
 
     # processScoreOptions, getNormalizedFields, and normalizeWord all called during setup
     # scoreMatch and valid not yet called
@@ -248,9 +271,9 @@ def test_plugin(mockPlugin, client, setup, config, csvcontents,
 
     query = {'q0': {'query': 'mxyzptlk'}}
     queryjson = json.dumps(query)
-    response = theClient.post('/reconcile',
-                              data=urlencode([('queries', queryjson)]),
-                              headers=formContentHeader)
+    response = client.post('/reconcile',
+                           data=urlencode([('queries', queryjson)]),
+                           headers=formContentHeader)
     assert response.status_code == 200
 
     matchBatch = json.loads(response.data)

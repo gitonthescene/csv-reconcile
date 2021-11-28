@@ -5,13 +5,12 @@
 ** Quick start
    - Clone this repository
    - Run the service
-     #+begin_src sh
-     $ python -m venv venv                                             # create virtualenv
-     $ venv/bin/pip install csv-reconcile                              # install package
-     $ source venv/bin/activate                                        # activate virtual environment
-     (venv) $ csv-reconcile --init-db sample/reps.tsv item itemLabel   # start the service
-     (venv) $ deactivate                                               # remove virtual environment
-     #+end_src
+     : $ python -m venv venv                                             # create virtualenv
+     : $ venv/bin/pip install csv-reconcile                              # install package
+     : $ source venv/bin/activate                                        # activate virtual environment
+     : (venv) $ csv-reconcile init sample/reps.tsv item itemLabel        # initialize the service
+     : (venv) $ csv-reconcile serve                                      # run the service
+     : (venv) $ deactivate                                               # remove virtual environment
 
    The service is run at http://127.0.0.1:5000/reconcile.  You can point at a different host:port by
    adding [[https://flask.palletsprojects.com/en/0.12.x/config/][SERVER_NAME]] to the sample.cfg.  Since this is running from a virtualenv, you can simply
@@ -27,19 +26,16 @@
 
 *** Running
    This is packaged with [[https://python-poetry.org/docs/][poetry]], so you can use those commands if you have it installed.
-   #+begin_src sh
-   $ poe install
-   $ poetry run csv-reconcile --init-db sample/reps.tsv item itemLabel
-   #+end_src
+   : $ poe install
+   : $ poetry run csv-reconcile init sample/reps.tsv item itemLabel
+   : $ poetry run csv-reconcile serve
 
 *** Building
     Because this package uses a ~README.org~ file and ~pip~ requires a ~README.md~, there are extra
     build steps beyond what ~poetry~ supplies.  These are managed using [[https://pypi.org/project/poethepoet/0.0.3/][poethepoet]].  Thus building is
     done as follows:
 
-    #+begin_src sh
-    $ poe build
-    #+end_src
+    : $ poe build
 
     If you want to build a platform agnostic wheel, you'll have to comment out the ~build =
     "build.py"~ line from ~pyproject.toml~ until ~poetry~ supports [[https://github.com/python-poetry/poetry/issues/3594][selecting build platform]].
@@ -50,9 +46,9 @@
    in a [[https://en.wikipedia.org/wiki/Comma-separated_values][CSV]] file.  The CSV file must contain a column containing distinct values to reconcile to.
    We'll call this the /id column/.  We'll call the column being reconciled against the /name column/.
 
-   For performance reasons, the /name column/ is preprocessed to normalized values which are stored in
-   an [[https://www.sqlite.org/index.html][sqlite]] database.  This database must be initialized at least once by passing the ~--init-db~ on
-   the command line.  Once initialized this option can be removed from subsequent runs.
+   For performance reasons, the /name column/ is preprocessed to normalized values which are stored
+   in an [[https://www.sqlite.org/index.html][sqlite]] database.  This database must be initialized at least once by running the init
+   sub-command.  Once initialized this need not be run for subsequent runs.
 
    Note that the service supplies all its data with a dummy /type/ so there is no reason to reconcile
    against any particular /type/.
@@ -64,23 +60,85 @@
 
 ** Usage
 
-   Basic usage requires passing the name of the CSV file, the /id column/ and the /name column/.
+   Basic usage involves two steps:
+     - initialization
+     - running the service
 
-   #+begin_src sh
-   $ poetry run csv-reconcile --help
-   Usage: csv-reconcile [OPTIONS] CSVFILE IDCOL NAMECOL
+   Initialization primes the database with the data processed from the CSV file with the ~init~ subcommand.
+   There are several options for running the service as described below.
 
-   Options:
-     --config TEXT  config file
-     --scorer TEXT  scoring plugin to use
-     --init-db      initialize the db
-     --help         Show this message and exit.
-   $
-   #+end_src
+*** Initialization
 
-   In addition to the ~--init-db~ switch mentioned above you may use the ~--config~ option to point to
-   a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask configuration]] and hence is Python code though most
-   configuration is simply setting variables to constant values.
+   Basic usage of the ~init~ sub-command requires passing the name of the CSV file, the /id column/
+   and the /name column/.
+
+   : (venv) $ csv-reconcile --help
+   : Usage: csv-reconcile [OPTIONS] COMMAND [ARGS]...
+   : 
+   : Options:
+   :   --help  Show this message and exit.
+   : 
+   : Commands:
+   :   init
+   :   run
+   :   serve
+   : (venv) $ csv-reconcile init --help
+   : Usage: csv-reconcile init [OPTIONS] CSVFILE IDCOL NAMECOL
+   : 
+   : Options:
+   :   --config TEXT  config file
+   :   --scorer TEXT  scoring plugin to use
+   :   --help         Show this message and exit.
+   : (venv) $ poetry run csv-reconcile serve --help
+   : Usage: csv-reconcile serve [OPTIONS]
+   : 
+   : Options:
+   :   --help         Show this message and exit.
+   : (venv) $
+
+   The ~--config~ option is used to point to a configuration file.  The file is a [[https://flask.palletsprojects.com/en/1.1.x/config/][Flask
+   configuration]] and hence is Python code though most configuration is simply setting variables to
+   constant values.
+
+*** Running the service
+    The simplest way to run the service is to use Flask's built-in web server with the ~serve~
+    subcommand which takes no arguments.  However, as mentioned in the [[https://flask.palletsprojects.com/en/2.0.x/deploying/][Flask documentation]], this
+    server is not suitable for production purposes.
+
+    For a more hardened service, you can use one of the other deployment options mentioned in that
+    documentation.  For example, gunicorn can be run as follows:
+
+    : (venv) $ gunicorn -w 4 'csv_reconcile:create_app()'
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Starting gunicorn 20.1.0
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Listening at: http://127.0.0.1:8000 (84625)
+    : 1-11-16 17:40:20 +0900] [84625] [INFO] Using worker: sync
+    : 1-11-16 17:40:20 +0900] [84626] [INFO] Booting worker with pid: 84626
+    : 1-11-16 17:40:20 +0900] [84627] [INFO] Booting worker with pid: 84627
+    : 1-11-16 17:40:20 +0900] [84628] [INFO] Booting worker with pid: 84628
+    : 1-11-16 17:40:20 +0900] [84629] [INFO] Booting worker with pid: 84629
+    : ...
+
+    One thing to watch out for is that the default manifest points the extension service to port
+    5000, the default port for the Flask built-in web server.  If you want to use the extension
+    service when deploying to a different port, you'll want to be sure to override that part of the
+    manifest in your config file.  You'll need something like the following:
+
+    : MANIFEST = {
+    :     "extend": {
+    :         "propose_properties": {
+    :             "service_url": "http://localhost:8000",
+    :             "service_path": "/properties"
+    :         }
+    :     }
+    : }
+
+    Note also that the configuration is saved during the ~init~ step.  If you change the config,
+    you'll need to re-run that step.  You may also need to delete and re-add the service in
+    OpenRefine.
+
+*** Deprecated
+    The ~run~ subcommand mimics the old behavior which combined the initialization step with the
+    running of the service.  This may be removed in a future release.
 
 ** Common configuration
    - ~SERVER_NAME~  - The host and port the service is bound to.
@@ -88,7 +146,7 @@
    - ~CSVKWARGS~  - Arguments to pass to [[https://docs.python.org/3/library/csv.html][csv.reader]].
      e.g. ~CSVKWARGS={'delimiter': ',', 'quotechar': '"'}~ for comma delimited files using ~"~ as quote character.
    - ~CSVENCODING~ - Encoding of the CSV file.
-     e.g. ~CSVECODING='utf-8-sig'~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
+     e.g. ~CSVENCODING="utf-8-sig"~ is the encoding used for data downloaded from [[https://www.usgs.gov/core-science-systems/ngp/board-on-geographic-names/download-gnis-data][GNIS]].
    - ~SCOREOPTIONS~  - Options passed to scoring plugin during normalization.
      e.g. ~SCOREOPTIONS={'stopwords':['lake','reservoir']}~
    - ~LIMIT~      - The maximum number of reonciliation candidates returned per entry.  ( Default 10 )
@@ -103,7 +161,7 @@
    This last is most interesting.  If your data is coming from [[https://www.wikidata.org][Wikidata]] and your /id column/
    contains [[https://www.wikidata.org/wiki/Help:Items][Q values]], then a manifest like the following will allow your links to be clickable inside OpenRefine.
 
-   #+begin_src json
+   #+begin_src python
    MANIFEST = {
      "identifierSpace": "http://www.wikidata.org/entity/",
      "schemaSpace": "http://www.wikidata.org/prop/direct/",
@@ -115,6 +173,25 @@
    If your CSV is made up of data taken from another [[https://reconciliation-api.github.io/testbench/][reconciliation service]], you may similiarly copy
    parts of their manifest to make use of their features, such as the [[https://reconciliation-api.github.io/specs/latest/#preview-service][preview service]].  See the
    reconciliation spec for details.
+
+** Built-in preview service
+   There is a preview service built into the tool.  (Thanks [[https://github.com/b2m][b2m]]!)  You can turn it on by adding the
+   following to your manifest:
+
+   #+begin_src python
+     "preview": {
+        "url": "http://localhost:5000/preview/{{id}}",
+        "width": 400,
+        "height": 300
+     }
+   #+end_src
+
+   Note that if you reconcile against a service with a preview service enabled, a link to the
+   service becomes part of the project.  Thus if you bring the service down, your project will have
+   hover over pop-ups to an unavailable service.  One way around this is to copy the
+   ~recon.match.id~ to a new column which can be re-reconciled to the column by id if you bring the
+   service back up again whether or not you have preview service enabled.  (Perhaps OpenRefine could
+   be smarter about enabling this pop-ups only when the service is active.)
 
 ** Scoring plugins
    As mentioned above the default scoring method is to use [[https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient][Dice coefficient scoring]], but this method
@@ -160,10 +237,8 @@
     The default Dice coefficent scoring is supplied via the following snippet from ~pyproject.toml~
     file.
 
-    #+begin_src
-    [tool.poetry.plugins."csv_reconcile.scorers"]
-    "dice" = "csv_reconcile_dice"
-    #+end_src
+    : [tool.poetry.plugins."csv_reconcile.scorers"]
+    : "dice" = "csv_reconcile_dice"
 
     Here ~dice~ becomes the name of the scoring option and ~csv_reconcile_dice~ is the package
     implementing the plugin.
@@ -175,6 +250,54 @@
 *** Known plugins
     See [[https://github.com/gitonthescene/csv-reconcile/wiki][wiki]] for list of known plugins.
 
+** Testing
+   Though I long for the old days when a unit test was a unit test, these days things are a bit more
+   complicated with various versions of ~Python~ and installation of plugins to manage.  Now we have
+   to wrestle with [[https://docs.python.org/3/tutorial/venv.html][virtual environments]].  ~poetry~ handles the virtual environment for developing,
+   but testing involves covering more options.
+   
+*** Tests layout
+    The tests directory structure is the following:
+
+    : tests
+    :     main
+    :     plugins
+    :         geo
+
+    Tests for the main package are found under ~main~ and don't require installing any other
+    packages whereas tests under ~plugins~ require the installation of the given plugin.
+    
+*** Running tests
+**** Basic tests
+     These tests are written with [[https://docs.pytest.org/en/6.2.x/contents.html][pytest]] and can be running through ~poetry~ as follows:
+
+     : $ poetry run pytest
+
+     To avoid the complications that come from installing plugins, there is a ~poe~ script for
+     running only the tests under main which can be invoked as follows:
+
+     : $ poe test
+
+     For steady state developing this is probably the command you'll use most often.
+     
+**** Build matrices
+     The GitHub Actions for this project currently use a [[https://docs.github.com/en/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix][build matrix]] across a couple of
+     architectures and several versions of ~Python~, but a similar effect can be achieved using [[https://nox.thea.codes/en/stable/tutorial.html][nox]].
+
+     ~nox~ manages the creation of various virtual environments in what they call "sessions", from
+     which various commands can be run.  This project's ~noxfile.py~ manages the installation of the
+     ~csv-reconcile-geo~ plugin for the plugin tests as well as running across several versions of
+     ~Python~.  See the ~nox~ documentation for detail.
+
+     Some versions of this command you're likely to run are as follows:
+
+     : $ nox      # Run all the tests building virtual environemnts from scratch
+     : $ nox -r   # Reuse previously built virtual environments for speed
+     : $ nox -s test_geo  # Run only the tests for the csv-reconcile-geo plugin
+     : $ nox -s test_main -p 3.8   # Run only the main tests with Python3.8
+
+     Eventually, the GitHub Actions may be changed to use [[https://github.com/marketplace/actions/setup-nox][setup-nox]].
+     
 ** Future enhancements
 
    It would be nice to add support for using [[https://reconciliation-api.github.io/specs/latest/#structure-of-a-reconciliation-query][properties]] as part of the scoring, so that more than

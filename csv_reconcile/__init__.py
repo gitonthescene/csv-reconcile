@@ -1,23 +1,28 @@
-from flask import Flask, request, jsonify
-from flask_cors import cross_origin
-from .score import processQueryBatch
-from .extend import getCSVCols, processDataExtensionBatch
-from .db import get_db
-from . import initdb
-from . import default_settings
-from . import scorer
 import json
 import os.path
-from contextlib import contextmanager
+from pathlib import Path
+import sys
 import time
+import shutil
+from contextlib import contextmanager
+
 import click
+from flask import abort, Flask, jsonify, request
+from flask_cors import cross_origin
+from markupsafe import escape
+
+from . import default_settings, initdb, scorer
+from .db import get_db, getCSVCols
+from .extend import processDataExtensionBatch
+from .preview import getEntity
+from .score import processQueryBatch
 
 try:
     import importlib_metadata as metadata
 except:
     from importlib import metadata
 
-__version__ = '0.2.5'
+__version__ = '0.3.0'
 #------------------------------------------------------------------
 # Implement reconciliation API
 # [[https://reconciliation-api.github.io/specs/latest/]]
@@ -48,15 +53,49 @@ MANIFEST = {
 }
 
 
-def create_app(setup=None, config=None, instance_path=None):
+def create_app(config=None, instance_path=None, scorerOption=None):
     app = Flask("csv-reconcile", instance_path=instance_path)
-    # Could make dbname configurable
+
+    instance_path = Path(app.instance_path)
+
+    try:
+        os.makedirs(instance_path)
+    except OSError:
+        pass
+
+    scorerfile = instance_path / 'scorer.txt'
+
+    # clean up old files if they exist
+    # "" indicates called from doinit()
+    if scorerOption == "" and scorerfile.is_file():
+        scorerfile.unlink()
+    elif scorerOption:
+        with open(scorerfile, 'w') as f:
+            f.write(scorerOption)
+
+    scorerOption = None
+    if scorerfile.is_file():
+        with open(scorerfile) as f:
+            scorerOption = f.read()
+
+    if pickScorer(scorerOption) is None:
+        return None
+
     # possibly better to roll THRESHOLD and LIMIT into one config called LIMITS
     app.config.from_object(default_settings)
-    if config:
-        app.config.from_pyfile(config)
 
-    app.config.from_mapping(**setup)
+    cfgfile = instance_path / "reconcile.config"
+
+    # clean up old configs if they exist
+    # "" indicates called from doinit()
+    if config == "" and cfgfile.is_file():
+        cfgfile.unlink()
+    elif config:
+        shutil.copyfile( config, cfgfile )
+
+    if cfgfile.is_file():
+        app.config.from_pyfile(cfgfile)
+
     scoreOptions = app.config['SCOREOPTIONS']
     scorer.processScoreOptions(scoreOptions)
 
@@ -66,11 +105,6 @@ def create_app(setup=None, config=None, instance_path=None):
     loglevel = app.config['LOGLEVEL']
     if loglevel:
         app.logger.setLevel(loglevel)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
 
     @app.before_request
     def before():
@@ -142,59 +176,146 @@ def create_app(setup=None, config=None, instance_path=None):
             ret = dict(properties=[{
                 'id': colname,
                 'name': name
-            } for name, colname in cols])
+            } for colname, name in cols])
             return jsonpify(ret)
 
         # unprocessible request
+
+    @app.route('/preview/<entity_id>')
+    @cross_origin()
+    def preview_service(entity_id=None):
+        if not entity_id:
+            abort(404)
+        entity = getEntity(entity_id)
+        if not entity:
+            abort(404)
+        entity_html = "".join([f"<dt>{escape(key)}</dt><dd>{escape(val)}</dd>"
+                               for key, val in entity.items()])
+        return f"""<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Preview for {escape(entity_id)}</title>
+        <style type='text/css'>
+          h1 {{font-size: 115%; }}
+          dl {{display: flex; flex-flow: row wrap;}}
+          dt {{flex-basis: 20%; padding: 2px 4px;
+               text-align: right; font-weight: bold;}}
+          dt::after {{content: ':';}}
+          dd {{flex-basis: 70%; flex-grow: 1;
+               margin: 0; padding: 2px 4px;}}
+        </style>
+    </head>
+    <body>
+        <dl>{entity_html}</dl>
+    </body>
+</html>"""
 
     return app
 
 
 def pickScorer(plugin):
     eps = metadata.entry_points().select(group='csv_reconcile.scorers')
+    entrypoint = None
     if len(eps) == 0:
         raise RuntimeError("Please install a \"csv_reconcile.scorers\" plugin")
     elif plugin:
         for ep in eps:
             if ep.name == plugin:
-                return ep
+                entrypoint = ep
+                break
         else:
             raise RuntimeError(
                 "Please install %s \"csv_reconcile.scorers\" plugin" %
                 (plugin,))
     elif len(eps) == 1:
-        return next(iter(eps))
+        entrypoint = next(iter(eps))
 
-    # print out options
-    print(
-        "There are several scorers available.  Please choose one of the following with the --scorer option."
-    )
-    for ep in eps:
-        print("  %s" % (ep.name,))
+    if entrypoint is None:
+        # print out options
+        print(
+            "There are several scorers available.  Please choose one of the following with the --scorer option."
+        )
+        for ep in eps:
+            print("  %s" % (ep.name,))
+        return None
 
-    return None
+    entrypoint.load()
+    return entrypoint
 
 
-@click.command()
+@click.group()
+def cli():
+    pass
+
+
+def doinit(config, scorerOption, csvfile, idcol, namecol):
+
+    app = create_app(config or "", scorerOption=scorerOption or "")
+    if app is None:
+        return
+
+    with app.app_context():
+        initdb.init_db_with_context(csvfile, idcol, namecol)
+        click.echo('Initialized the database.')
+    return app
+
+
+@cli.command()
+@click.option('--config', help='config file')
+@click.option('--scorer', 'scorerOption', help='scoring plugin to use')
+@click.argument('csvfile')
+@click.argument('idcol')
+@click.argument('namecol')
+def init(config, scorerOption, csvfile, idcol, namecol):
+    return doinit(config, scorerOption, csvfile, idcol, namecol)
+
+@cli.command()
 @click.option('--config', help='config file')
 @click.option('--scorer', 'scorerOption', help='scoring plugin to use')
 @click.option('--init-db', is_flag=True, help='initialize the db')
 @click.argument('csvfile')
 @click.argument('idcol')
 @click.argument('namecol')
-def main(config, scorerOption, init_db, csvfile, idcol, namecol):
-    ep = pickScorer(scorerOption)
-    if ep:
-        ep.load()
-    else:
-        return
+def run(config, scorerOption, init_db, csvfile, idcol, namecol):
+    print('''
+#########################################################
+##         WARNING: The interface is deprecated        ##
+#########################################################
 
-    app = create_app(dict(CSVFILE=csvfile, CSVCOLS=(idcol, namecol)), config)
+Please run init once to initialize the database and serve to run the server.
+See --help for details.
+''')
+
+    app = None
     if init_db:
-        with app.app_context():
-            initdb.init_db_with_context()
-            click.echo('Initialized the database.')
+        app = doinit(config, scorerOption, csvfile, idcol, namecol)
 
+    app = app or create_app(config)
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     app.run(debug=False)
+
+
+@cli.command()
+def serve():
+
+    # Config should have been copied during the init phase
+    app = create_app()
+    from werkzeug.serving import WSGIRequestHandler
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
+    app.run(debug=False)
+
+
+def main():
+    nonopts = [a for a in sys.argv if not a.startswith('--')]
+
+    if len(nonopts) > 1 and nonopts[1] not in 'run init serve':
+        print('''
+#########################################################
+##     WARNING: The interface has changed slightly.    ##
+#########################################################
+Please use one of the subcommands. See --help for details.
+
+''')
+    return cli()

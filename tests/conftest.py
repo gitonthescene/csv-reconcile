@@ -40,31 +40,51 @@ def header(csvcontents):
 
 
 @pytest.fixture
+def idnm(header):
+    '''id and name cols from the header'''
+    return (header[1], header[0])
+
+
+@pytest.fixture
 def typicalrow(csvcontents):
     '''typical row of mock csvfile'''
     return csvcontents.splitlines()[1].split('\t')
 
 
 @pytest.fixture
-def setup(tmp_path, csvcontents, header, typicalrow):
+def setup(tmp_path, csvcontents, idnm):
     '''mock csv file with id and name columns indicated'''
 
     p = tmp_path / "csvfile"
     p.write_text(csvcontents)
-    return dict(CSVFILE=p, CSVCOLS=tuple(reversed(header[:2])))
+    return (p, *idnm)
 
 
 @pytest.fixture
-def config(tmp_path):
-    '''mock server config'''
-    filecontents = '''
+def cfgContents():
+    return '''
 THRESHOLD=0.0
 import logging
 LOGLEVEL=logging.DEBUG'''
-    p = tmp_path / "config"
-    p.write_text(filecontents)
 
-    return p
+
+@pytest.fixture
+def mkConfig(tmp_path):
+    '''make server config'''
+
+    def fn(cfgContents):
+        p = tmp_path / "config"
+        p.write_text(cfgContents)
+
+        return p
+
+    return fn
+
+
+@pytest.fixture
+def config(mkConfig, cfgContents):
+    '''mock server config'''
+    return mkConfig(cfgContents)
 
 
 @pytest.fixture
@@ -83,13 +103,11 @@ def mockPlugin():
 @pytest.fixture
 def app(plugins, tmp_path):
     '''flask app'''
-    # Apply the dice plugin
-    plugins['dice'].load()
 
-    def getApp(setup, config):
-        app = create_app(setup, config, instance_path=tmp_path / "instance")
+    def getApp(setup, config, plugin='dice'):
+        app = create_app(config, instance_path=tmp_path / "instance", scorerOption=plugin)
         with app.app_context():
-            initdb.init_db_with_context()
+            initdb.init_db_with_context(*setup)
 
         return app
 
@@ -100,12 +118,16 @@ def app(plugins, tmp_path):
 def client(app):
     '''http client'''
 
-    def getClient(setup, config):
-        return app(setup, config).test_client()
+    def getClient(setup, config, plugin='dice'):
+        return app(setup, config, plugin=plugin).test_client()
 
     return getClient
 
 
 @pytest.fixture
 def basicClient(client, setup, config):
-    return client(setup, config)
+
+    def getClient(config=config):
+        return client(setup, config, plugin='dice')
+
+    return getClient
