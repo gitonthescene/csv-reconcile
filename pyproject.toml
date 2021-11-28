@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "csv-reconcile"
-version = "0.2.5"
+version = "0.3.0"
 description = "OpenRefine reconciliation service backed by csv resource"
 authors = ["Douglas Mennella <trx2358-pypi@yahoo.com>"]
 license = "MIT"
