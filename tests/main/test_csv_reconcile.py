@@ -1,6 +1,8 @@
 import pytest
 
 from csv_reconcile import __version__, scorer
+from csv_reconcile.db import getCSVCols
+
 import json
 from urllib.parse import urlencode
 
@@ -283,3 +285,23 @@ def test_plugin(mockPlugin, basicClient, csvcontents, formContentHeader):
 
     # processScoreOptions still called once, getNormalizedFields only called twice
     assert called[:2] == [1, 2]
+
+def test_csv_sniffer_overrides(app, ambiguous_setup, ambiguous_csvcontents, config, mkConfig):
+
+    topline = ambiguous_csvcontents.splitlines()[0]
+    items = lambda sep: [ h.strip() for h in topline.split(sep)]
+
+    # First guess is that the , is a separator
+    SEP = ','
+    chk = app(ambiguous_setup(items(SEP)[:2]), config)
+    with chk.app_context():
+        headernms = [name for _,name in getCSVCols()]
+        assert headernms == items(SEP)
+
+    # Now parse with override
+    SEP = ' '
+    cfg = mkConfig('CSVKWARGS = {"delimiter": " "}')
+    chk = app(ambiguous_setup(items(SEP)[:2]), cfg)
+    with chk.app_context():
+        headernms = [name for _,name in getCSVCols()]
+        assert headernms == items(SEP)
