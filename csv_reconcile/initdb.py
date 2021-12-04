@@ -1,5 +1,7 @@
 from flask import current_app
 import csv
+from chardet.universaldetector import UniversalDetector
+
 from collections import defaultdict
 from itertools import count
 
@@ -39,6 +41,15 @@ def initReconcileTable(db, colnames):
     # create data table with the contents of the csv file
     db.execute(',\n  '.join(create) + '\n)')
 
+def detectEncoding(filenm):
+    detector = UniversalDetector()
+    for line in open(filenm, 'rb'):
+        detector.feed(line)
+        if detector.done: break
+    detector.close()
+    if detector.result['confidence'] > .95:
+        return detector.result['encoding']
+    return None
 
 def init_db(db,
             csvfilenm,
@@ -49,6 +60,8 @@ def init_db(db,
             csvkwargs=None):
 
     enckwarg = dict()
+    csvencoding = csvencoding or detectEncoding(csvfilenm)
+
     if csvencoding:
         enckwarg['encoding'] = csvencoding
 
@@ -60,7 +73,9 @@ def init_db(db,
     with db:
         # Create a table with ids (as PRIMARY ID), words and bigrams
         with open(csvfilenm, newline='', **enckwarg) as csvfile:
-            reader = csv.reader(csvfile, **csvkwargs)
+            dialect = csv.Sniffer().sniff(csvfile.read(1024))
+            csvfile.seek(0)
+            reader = csv.reader(csvfile, dialect, **csvkwargs)
             header = next(reader)
 
             # Throws if col doesn't exist
