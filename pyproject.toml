@@ -24,7 +24,6 @@ cython = "^0.29.21"
 normality = "^2.1.1"
 importlib_metadata = { version = "^4.5.0", python = "<3.10" }
 chardet = "^4.0.0"
-PyICU = "^2.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
