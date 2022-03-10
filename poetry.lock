@@ -154,7 +154,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "normality"
-version = "2.2.5"
+version = "2.3.0"
 description = "Micro-library to normalize text strings"
 category = "main"
 optional = false
@@ -455,8 +455,8 @@ markupsafe = [
     {file = "MarkupSafe-2.0.1.tar.gz", hash = "sha256:594c67807fb16238b30c44bdf74f36c02cdf22d1c8cda91ef8a0ed8dabf5620a"},
 ]
 normality = [
-    {file = "normality-2.2.5-py2.py3-none-any.whl", hash = "sha256:2cd20c6f78e3a9eb661e46a4194d12f253b58a84e58bbc389c6e12b63793a004"},
-    {file = "normality-2.2.5.tar.gz", hash = "sha256:b27d8c9b79efa7a6a7e90253b56ccb448b4873dfc3803a669e72159b2038625a"},
+    {file = "normality-2.3.0-py2.py3-none-any.whl", hash = "sha256:a249b2c761274ac11e4a3bf2d08fa0a78853d59b5406216a65fe2b99cd0f43d1"},
+    {file = "normality-2.3.0.tar.gz", hash = "sha256:028412a9f925c26bb93a2dec3e5bd42823d91a1d0f9dd8f01977a7cbd9eb380d"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
