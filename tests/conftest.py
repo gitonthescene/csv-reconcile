@@ -26,6 +26,14 @@ second	2	junk
 third	3	and so on
 '''.strip()
 
+@pytest.fixture
+def ambiguous_csvcontents():
+    '''Try to throw off csv.Sniffer() to test overrides'''
+    return '''
+These, my friends, are the columns
+However, above all, columns matter most
+'''.strip()
+
 
 @pytest.fixture
 def formContentHeader():
@@ -59,6 +67,16 @@ def setup(tmp_path, csvcontents, idnm):
     p.write_text(csvcontents)
     return (p, *idnm)
 
+@pytest.fixture
+def ambiguous_setup(tmp_path, ambiguous_csvcontents):
+    '''mock csv file with id and name columns indicated'''
+
+    def getSetup(idnm):
+        p = tmp_path / "amb_csvfile"
+        p.write_text(ambiguous_csvcontents)
+        return (p, *idnm)
+
+    return getSetup
 
 @pytest.fixture
 def cfgContents():

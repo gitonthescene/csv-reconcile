@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "csv-reconcile"
-version = "0.3.0"
+version = "0.3.1"
 description = "OpenRefine reconciliation service backed by csv resource"
 authors = ["Douglas Mennella <trx2358-pypi@yahoo.com>"]
 license = "MIT"
@@ -23,9 +23,10 @@ flask-cors = "^3.0.10"
 cython = "^0.29.21"
 normality = "^2.1.1"
 importlib_metadata = { version = "^4.5.0", python = "<3.10" }
+chardet = "^4.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2"
+pytest = "^7.1"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
