@@ -34,6 +34,13 @@ These, my friends, are the columns
 However, above all, columns matter most
 '''.strip()
 
+@pytest.fixture
+def sniffer_throwing_csvcontents():
+    '''Try to throw off csv.Sniffer() to test overrides'''
+    return '''
+a,b,c\n1,2
+'''.strip()
+
 
 @pytest.fixture
 def formContentHeader():
@@ -74,6 +81,17 @@ def ambiguous_setup(tmp_path, ambiguous_csvcontents):
     def getSetup(idnm):
         p = tmp_path / "amb_csvfile"
         p.write_text(ambiguous_csvcontents)
+        return (p, *idnm)
+
+    return getSetup
+
+@pytest.fixture
+def sniffer_throwing_setup(tmp_path, sniffer_throwing_csvcontents):
+    '''mock csv file with id and name columns indicated'''
+
+    def getSetup(idnm):
+        p = tmp_path / "snfthrw_csvfile"
+        p.write_text(sniffer_throwing_csvcontents)
         return (p, *idnm)
 
     return getSetup

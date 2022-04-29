@@ -305,3 +305,22 @@ def test_csv_sniffer_overrides(app, ambiguous_setup, ambiguous_csvcontents, conf
     with chk.app_context():
         headernms = [name for _,name in getCSVCols()]
         assert headernms == items(SEP)
+
+def test_csv_sniffer_throwing(app, sniffer_throwing_setup, sniffer_throwing_csvcontents, config, mkConfig):
+
+    topline = sniffer_throwing_csvcontents.splitlines()[0]
+    items = lambda sep: [ h.strip() for h in topline.split(sep)]
+
+    # First guess is that the , is a separator
+    SEP = ','
+    chk = app(sniffer_throwing_setup(items(SEP)[:2]), config)
+    with chk.app_context():
+        headernms = [name for _,name in getCSVCols()]
+        assert headernms == items(SEP)
+
+    # Now parse with override
+    cfg = mkConfig('CSVKWARGS = {"delimiter": ","}')
+    chk = app(sniffer_throwing_setup(items(SEP)[:2]), cfg)
+    with chk.app_context():
+        headernms = [name for _,name in getCSVCols()]
+        assert headernms == items(SEP)
