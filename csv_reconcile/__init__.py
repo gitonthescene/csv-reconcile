@@ -22,7 +22,7 @@ try:
 except:
     from importlib import metadata
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 #------------------------------------------------------------------
 # Implement reconciliation API
 # [[https://reconciliation-api.github.io/specs/latest/]]

@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 
 
 def test_version():
-    assert __version__ == '0.3.0'
+    assert __version__ == '0.3.1'
 
 
 def test_manifest(basicClient):
