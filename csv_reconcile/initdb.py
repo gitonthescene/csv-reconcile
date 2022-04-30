@@ -73,9 +73,14 @@ def init_db(db,
     with db:
         # Create a table with ids (as PRIMARY ID), words and bigrams
         with open(csvfilenm, newline='', **enckwarg) as csvfile:
-            dialect = csv.Sniffer().sniff(csvfile.read(1024))
+            dialect = None
+            try:
+                dialect = csv.Sniffer().sniff(csvfile.read(1024))
+            except:
+                pass
+
             csvfile.seek(0)
-            reader = csv.reader(csvfile, dialect, **csvkwargs)
+            reader = csv.reader(csvfile, dialect=dialect, **csvkwargs)
             header = next(reader)
 
             # Throws if col doesn't exist
