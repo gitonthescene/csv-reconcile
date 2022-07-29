@@ -29,7 +29,7 @@ optional = false
 python-versions = "*"
 
 [package.extras]
-dev = ["mypy", "wheel"]
+dev = ["wheel", "mypy"]
 
 [[package]]
 name = "chardet"
@@ -166,7 +166,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "normality"
-version = "2.3.3"
+version = "2.4.0"
 description = "Micro-library to normalize text strings"
 category = "main"
 optional = false
@@ -179,8 +179,8 @@ charset-normalizer = ">=2.0.0"
 text-unidecode = "*"
 
 [package.extras]
-dev = ["pyicu (>=1.9.3)", "mypy", "pytest", "types-chardet"]
 icu = ["pyicu (>=1.9.3)"]
+dev = ["types-chardet", "pytest", "mypy", "pyicu (>=1.9.3)"]
 
 [[package]]
 name = "packaging"
@@ -205,8 +205,8 @@ python-versions = ">=3.6"
 importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
 
 [package.extras]
-dev = ["pre-commit", "tox"]
-testing = ["pytest", "pytest-benchmark"]
+testing = ["pytest-benchmark", "pytest"]
+dev = ["tox", "pre-commit"]
 
 [[package]]
 name = "py"
@@ -447,8 +447,8 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
 ]
 normality = [
-    {file = "normality-2.3.3-py2.py3-none-any.whl", hash = "sha256:ebb51520cd0f50f4b7f252fd434c62bc34f71d92e5faa6b66019c6733e59b204"},
-    {file = "normality-2.3.3.tar.gz", hash = "sha256:c9eda72c288795294db79b1fe0b285b26f0b5e2e7b20b8fa1e617eb165fc3962"},
+    {file = "normality-2.4.0-py2.py3-none-any.whl", hash = "sha256:8bd9dd5a0220f641ed4cc59b7ad64ab11b0ee49e57e5a70bf515445ff72574d2"},
+    {file = "normality-2.4.0.tar.gz", hash = "sha256:38bbe4e1dfd737c318ffd70e981ae8ff40bd8839393f6d62f0e200e5aab9e992"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
