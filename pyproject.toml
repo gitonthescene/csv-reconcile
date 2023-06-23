@@ -26,7 +26,7 @@ importlib_metadata = { version = ">=4.5,<7.0", python = "<3.10" }
 chardet = ">=4,<6"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.3"
+pytest = "^7.4"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
