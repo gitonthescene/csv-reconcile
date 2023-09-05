@@ -36,6 +36,11 @@ jobs:
       - name: Install poethepoet
         run: python -m pip install poethepoet
       #----------------------------------------------
+      #       install poethepoet
+      #----------------------------------------------
+      - name: Install poethepoet
+        run: pip install requests -U
+      #----------------------------------------------
       #  -----  install & configure poetry  -----      
       #----------------------------------------------
       - name: Install Poetry
