@@ -292,13 +292,13 @@ files = [
 
 [[package]]
 name = "normality"
-version = "2.4.0"
+version = "2.5.0"
 description = "Micro-library to normalize text strings"
 optional = false
 python-versions = "*"
 files = [
-    {file = "normality-2.4.0-py2.py3-none-any.whl", hash = "sha256:8bd9dd5a0220f641ed4cc59b7ad64ab11b0ee49e57e5a70bf515445ff72574d2"},
-    {file = "normality-2.4.0.tar.gz", hash = "sha256:38bbe4e1dfd737c318ffd70e981ae8ff40bd8839393f6d62f0e200e5aab9e992"},
+    {file = "normality-2.5.0-py2.py3-none-any.whl", hash = "sha256:d9f48daf32e351e88b9e372787c1da437df9d0d818aec6e2834b02102378df62"},
+    {file = "normality-2.5.0.tar.gz", hash = "sha256:a55133e972b81c4a3bf8b6dc419f262f94a4fd6f636297046f74d35c93abe153"},
 ]
 
 [package.dependencies]
