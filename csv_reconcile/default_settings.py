@@ -1,3 +1,4 @@
+"""Default settings as a python module."""
 import logging
 
 DATABASE = 'csvreconcile.db'

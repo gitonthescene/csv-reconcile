@@ -1,3 +1,4 @@
+"""Initialize db to be used for reconciliation."""
 from flask import current_app
 import csv
 from chardet.universaldetector import UniversalDetector
@@ -7,12 +8,13 @@ from itertools import count
 
 from .db import get_db, normalizeDBcol
 
-from importlib.resources import read_text
+from importlib.resources import files
 import csv_reconcile
 from . import scorer
 
 
 def initDataTable(db, colnames, idcol):
+    """Initialize db backend."""
     cols = []
     cnts = defaultdict(count)
     for col in colnames:
@@ -32,6 +34,7 @@ def initDataTable(db, colnames, idcol):
 
 
 def initReconcileTable(db, colnames):
+    """Initialize Reconciliation table."""
     create = [
         'CREATE TABLE reconcile (\n  id TEXT PRIMARY KEY,\n  word TEXT NOT NULL'
     ]
@@ -41,15 +44,19 @@ def initReconcileTable(db, colnames):
     # create data table with the contents of the csv file
     db.execute(',\n  '.join(create) + '\n)')
 
+
 def detectEncoding(filenm):
+    """Detect encoding."""
     detector = UniversalDetector()
     for line in open(filenm, 'rb'):
         detector.feed(line)
-        if detector.done: break
+        if detector.done:
+            break
     detector.close()
     if detector.result['confidence'] > .95:
         return detector.result['encoding']
     return None
+
 
 def init_db(db,
             csvfilenm,
@@ -58,15 +65,15 @@ def init_db(db,
             csvencoding=None,
             scoreOptions=None,
             csvkwargs=None):
-
+    """Initialize db tables."""
     enckwarg = dict()
     csvencoding = csvencoding or detectEncoding(csvfilenm)
 
     if csvencoding:
         enckwarg['encoding'] = csvencoding
 
-    schema = read_text(csv_reconcile, 'schema.sql')
-    db.executescript(schema)
+    schema = files(csv_reconcile) / 'schema.sql'
+    db.executescript(schema.read_text())
 
     csvkwargs = {} if csvkwargs is None else csvkwargs
 
@@ -76,7 +83,7 @@ def init_db(db,
             dialect = None
             try:
                 dialect = csv.Sniffer().sniff(csvfile.read(1024))
-            except:
+            except csv.Error:
                 pass
 
             csvfile.seek(0)
@@ -107,6 +114,7 @@ def init_db(db,
 
 
 def init_db_with_context(csvfilenm, idcol, searchcol):
+    """Initialize db tables with context."""
     db = get_db()
     csvkwargs = current_app.config.get('CSVKWARGS', {})
     scoreOptions = current_app.config['SCOREOPTIONS']

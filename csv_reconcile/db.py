@@ -1,3 +1,4 @@
+"""Databse API."""
 import os.path
 import sqlite3
 
@@ -6,16 +7,19 @@ from normality import slugify
 
 
 def normalizeDBcol(col):
+    """Normalize column names."""
     return slugify(col).replace('-', '_')
 
 
 def getCSVCols():
+    """Column names getter."""
     cur = get_db().cursor()
     cur.execute("SELECT * FROM datacols")
     return [(row['colname'], row['name']) for row in cur]
 
 
 def getIDCol():
+    """Get ID column."""
     cur = get_db().cursor()
 
     cur.execute("SELECT colname FROM datacols WHERE isid == 1")
@@ -26,6 +30,7 @@ def getIDCol():
 
 
 def get_db():
+    """SQLITE db getter."""
     if 'db' not in g:
         g.db = sqlite3.connect(os.path.join(current_app.instance_path,
                                             current_app.config['DATABASE']),
@@ -36,6 +41,7 @@ def get_db():
 
 
 def close_db(e=None):
+    """Close SQLITE db."""
     db = g.pop('db', None)
 
     if db is not None:

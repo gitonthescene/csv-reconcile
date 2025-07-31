@@ -1,8 +1,10 @@
+"""Invoke scoring."""
 from collections import defaultdict
 from . import scorer
 
 
 def reconcileStrings(db, items, **kwargs):
+    """Transform collection of strings into a batch request and process."""
     # Use index as query id
     batch = dict(enumerate({'query': s} for s in items))
 
@@ -13,9 +15,7 @@ def reconcileStrings(db, items, **kwargs):
 
 
 def processQueryBatch(db, batch, limit=None, threshold=0.0, **scoreOptions):
-    '''
-    Go through db looking for words whose fuzzy match score positively
-    '''
+    """Go through db looking for words whose fuzzy match score positively."""
     hasFeatures = not getattr(scorer.features, "disabled", False)
 
     toMatchItems = dict()

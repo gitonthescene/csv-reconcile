@@ -1,11 +1,13 @@
+"""Process data extensions."""
 from .db import get_db, getIDCol, getCSVCols
 
+
 def processDataExtensionBatch(batch):
+    """Process exctension batch."""
     ids, props = tuple(batch[x] for x in ('ids', 'properties'))
     names = {p['id'] for p in props}
     cols = {colnm: nm for colnm, nm in getCSVCols() if colnm in names}
     idcol = getIDCol()
-
 
     db = get_db()
     cur = db.cursor()

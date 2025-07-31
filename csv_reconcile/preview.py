@@ -1,7 +1,9 @@
+"""Provide preview data."""
 from .db import get_db, getCSVCols, getIDCol
 
 
 def getEntity(entity_id):
+    """Get Entity by ID."""
     id_col = getIDCol()
     cols = dict(getCSVCols())
 
