@@ -24,7 +24,7 @@ click = "^8.2.1"
 poetry-plugin-export = "^1.9.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
+pytest = ">=7.4,<9.0"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
