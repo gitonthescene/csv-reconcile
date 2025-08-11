@@ -18,7 +18,7 @@ packages = [
 python = "^3.10"
 flask = ">=2.0"
 flask-cors = ">=3.0.10"
-normality = "^2.1.1"
+normality = ">=2.1.1,<4.0.0"
 chardet = ">=4,<6"
 click = "^8.2.1"
 poetry-plugin-export = "^1.9.0"
