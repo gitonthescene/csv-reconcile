@@ -27,10 +27,8 @@ jobs:
       - name: Install ICU4C
         if: runner.os == 'macOS'
         run: |
-          echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
-          echo /usr/local/opt/icu4c/sbin:/usr/local/opt/icu4c/bin >> $GITHUB_PATH
-          brew install icu4c
           brew ls --verbose icu4c
+          echo "PKG_CONFIG_PATH=/opt/homebrew/Cellar/icu4c@77/77.1/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
       #----------------------------------------------
       #       install poethepoet
       #----------------------------------------------
