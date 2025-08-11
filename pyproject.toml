@@ -22,6 +22,7 @@ normality = "^2.1.1"
 chardet = ">=4,<6"
 click = "^8.2.1"
 poetry-plugin-export = "^1.9.0"
+pyicu = "^2.15.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.4,<9.0"

@@ -22,6 +22,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
+      #       install icu4c
+      #----------------------------------------------
+      - name: Install ICU4C
+        if: runner.os == 'macOS'
+        run: |
+          brew install icu4c
+          brew ls icu4c
+          echo "PKG_CONFIG_PATH=/opt/homebrew/Cellar/icu4c@77/77.1/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+      #----------------------------------------------
       #       install poethepoet
       #----------------------------------------------
       - name: Install poethepoet
