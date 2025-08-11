@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
+      #       install icu4c
+      #----------------------------------------------
+      - name: Install ICU4C
+        if: runner.os == 'macOS'
+          run: brew install icu4c
+      #----------------------------------------------
       #       install poethepoet
       #----------------------------------------------
       - name: Install poethepoet
