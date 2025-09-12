@@ -1039,13 +1039,13 @@ files = [
 
 [[package]]
 name = "normality"
-version = "3.0.1"
+version = "3.0.2"
 description = "Micro-library to normalize text strings"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "normality-3.0.1-py3-none-any.whl", hash = "sha256:c282c1990eb65b2859649a2ffca9fee081f6b106f45ff62e37db1418a0c8fae6"},
+    {file = "normality-3.0.2-py3-none-any.whl", hash = "sha256:f013db2fdd831f26ae8b23f2e2652501ff0f9bdcb24d889ba5dc87c88a595288"},
 ]
 
 [package.dependencies]
