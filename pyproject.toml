@@ -25,7 +25,7 @@ poetry-plugin-export = "^1.9.0"
 pyicu = "^2.15.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=7.4,<9.0"
+pytest = ">=7.4,<10.0"
 
 [tool.poe.tasks]
 dummydoc = { script = "utils:dummydoc" }
