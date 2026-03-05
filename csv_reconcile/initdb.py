@@ -1,7 +1,7 @@
 """Initialize db to be used for reconciliation."""
 from flask import current_app
 import csv
-from chardet.universaldetector import UniversalDetector
+from chardet import UniversalDetector
 
 from collections import defaultdict
 from itertools import count
