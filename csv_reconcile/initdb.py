@@ -75,7 +75,7 @@ def init_db(db,
         with open(csvfilenm, newline='', **enckwarg) as csvfile:
             dialect = None
             try:
-                dialect = csv.Sniffer().sniff(csvfile.read(1024))
+                dialect = csv.Sniffer().sniff(csvfile.readline())
             except:
                 pass
 
