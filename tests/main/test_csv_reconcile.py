@@ -1,14 +1,24 @@
 import pytest
 
-from csv_reconcile import __version__, scorer
+from csv_reconcile import __version__, main, scorer
 from csv_reconcile.db import getCSVCols
 
 import json
+import sys
 from urllib.parse import urlencode
 
 
 def test_version():
     assert __version__ == '0.3.2'
+
+
+def test_main_warns_on_subcommand_prefix(monkeypatch, capsys):
+    # 'r' is only a prefix of a valid subcommand, not one itself,
+    # so the "use one of the subcommands" hint must still be shown.
+    monkeypatch.setattr(sys, "argv", ["csv-reconcile", "r"])
+    with pytest.raises(SystemExit):
+        main()
+    assert "subcommands" in capsys.readouterr().out
 
 
 def test_manifest(basicClient):

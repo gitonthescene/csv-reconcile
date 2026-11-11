@@ -310,7 +310,7 @@ def serve():
 def main():
     nonopts = [a for a in sys.argv if not a.startswith('--')]
 
-    if len(nonopts) > 1 and nonopts[1] not in 'run init serve':
+    if len(nonopts) > 1 and nonopts[1] not in ('run', 'init', 'serve'):
         print('''
 #########################################################
 ##     WARNING: The interface has changed slightly.    ##
