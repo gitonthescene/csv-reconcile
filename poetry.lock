@@ -1409,14 +1409,14 @@ files = [
 
 [[package]]
 name = "poetry-plugin-export"
-version = "1.10.1"
+version = "1.10.2"
 description = "Poetry plugin to export the dependencies to various formats"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "poetry_plugin_export-1.10.1-py3-none-any.whl", hash = "sha256:83f10f98bb39ddc0dc839bdaa04848c9b2265a77e95d8dfd6e82071cab94540f"},
-    {file = "poetry_plugin_export-1.10.1.tar.gz", hash = "sha256:b1429306da4eb0fd5c3b52a3bf37a5dfcdac96c6ddcfd08f6385be4aa11932d3"},
+    {file = "poetry_plugin_export-1.10.2-py3-none-any.whl", hash = "sha256:f210c3f3c3155a51b83d37380884766a4f3fa62895adde2f3a11addb665eb5a2"},
+    {file = "poetry_plugin_export-1.10.2.tar.gz", hash = "sha256:36c344f5876e55489b4c1001b6151eccc86eb02ec1d2f21b132cfe190dc736b1"},
 ]
 
 [package.dependencies]
